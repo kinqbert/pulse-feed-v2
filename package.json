@@ -13,6 +13,6 @@
     "db:seed": "npm run db:seed -w apps/api"
   },
   "devDependencies": {
-    "concurrently": "latest"
+    "concurrently": "^9.0.0"
   }
 }
