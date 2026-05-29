@@ -1,5 +1,5 @@
-import 'dotenv/config';
-import Joi from 'joi';
+import "dotenv/config";
+import Joi from "joi";
 
 const envSchema = Joi.object({
   PORT: Joi.number().default(3000),
