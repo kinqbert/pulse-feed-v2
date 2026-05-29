@@ -2,8 +2,13 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { CONFIG } from '../lib/config';
 
 import * as schema from './schema';
+import { Pool } from 'pg';
 
-export const db = drizzle(CONFIG.DATABASE_URL, {
+const pool = new Pool({
+  connectionString: CONFIG.DATABASE_URL,
+});
+
+export const db = drizzle(pool, {
   schema,
   casing: 'snake_case',
 });
