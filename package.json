@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev -w api\" \"npm run dev -w web\"",
+    "dev": "concurrently --names API,WEB --prefix-colors blue,green \"npm run dev -w api\" \"npm run dev -w web\"",
     "dev:web": "npm run dev -w web",
     "dev:api": "npm run dev -w api",
     "db:seed": "npm run db:seed -w api"
