@@ -52,7 +52,6 @@ type BaseFeedActivity = {
   id: string;
   createdAt: string;
   actor: ActivityActor;
-  commentsCount: number;
 };
 
 export type FeedActivity =

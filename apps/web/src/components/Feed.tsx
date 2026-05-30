@@ -114,7 +114,6 @@ export const Feed = () => {
                       top="0"
                       left="0"
                       width="100%"
-                      pb="3"
                       style={{
                         transform: `translateY(${
                           virtualRow.start - scrollMargin

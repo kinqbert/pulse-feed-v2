@@ -75,9 +75,6 @@ export class FeedActivityDto {
   @ValidateNested()
   @Type(() => ActivityActorDto)
   declare actor: ActivityActorDto;
-
-  @IsInt()
-  declare commentsCount: number;
 }
 
 export class FeedPageDto {

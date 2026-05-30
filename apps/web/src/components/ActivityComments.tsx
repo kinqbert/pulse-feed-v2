@@ -1,26 +1,37 @@
 import { Avatar, Box, Flex, Separator, Text } from "@radix-ui/themes";
 import { useActivityCommentsQuery } from "../api/feed";
-import { formatActivityDate } from "../utils/formatActivityDate";
+import { formatRelativeDate } from "../utils/formatRelativeDate";
 import { getInitials } from "../utils/getInitials";
 import { ActivityCommentForm } from "./ActivityCommentForm";
 
 export const ActivityComments = ({ activityId }: { activityId: string }) => {
-  const commentsQuery = useActivityCommentsQuery(activityId);
+  const {
+    data: comments,
+    isLoading,
+    isError,
+  } = useActivityCommentsQuery(activityId);
+  const shouldDisplayEmptyState =
+    !isLoading && !isError && comments?.length === 0;
 
   return (
     <Flex direction="column" gap="3" mt="3">
       <Separator size="4" />
-      {commentsQuery.isLoading ? (
+      {isLoading ? (
         <Text size="2" color="gray">
           Loading comments...
         </Text>
       ) : null}
-      {commentsQuery.isError ? (
+      {isError ? (
         <Text size="2" color="red">
           Could not load comments.
         </Text>
       ) : null}
-      {commentsQuery.data?.map((comment) => (
+      {shouldDisplayEmptyState ? (
+        <Text size="2" color="gray">
+          No comments
+        </Text>
+      ) : null}
+      {comments?.map((comment) => (
         <Flex key={comment.id} gap="3" align="start">
           <Avatar
             size="2"
@@ -34,7 +45,7 @@ export const ActivityComments = ({ activityId }: { activityId: string }) => {
                 {comment.actor.name}
               </Text>
               <Text size="1" color="gray">
-                {formatActivityDate(comment.createdAt)}
+                {formatRelativeDate(comment.createdAt)}
               </Text>
             </Flex>
             <Text as="p" size="2" mt="1">

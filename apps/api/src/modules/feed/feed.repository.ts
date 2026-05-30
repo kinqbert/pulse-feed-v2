@@ -1,12 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { and, asc, count, desc, eq, gte, lt, or, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, or, type SQL } from "drizzle-orm";
 import { db } from "../../db/db";
-import {
-  activities,
-  activityComments,
-  type ActivityType,
-  users,
-} from "../../db/schema";
+import { activities, type ActivityType, users } from "../../db/schema";
 
 @Injectable()
 export class FeedRepository {
@@ -57,7 +52,6 @@ export class FeedRepository {
         type: activities.type,
         metadata: activities.metadata,
         createdAt: activities.createdAt,
-        commentsCount: count(activityComments.id),
         actor: {
           id: users.id,
           name: users.name,
@@ -66,20 +60,7 @@ export class FeedRepository {
       })
       .from(activities)
       .innerJoin(users, eq(activities.actorId, users.id))
-      .leftJoin(
-        activityComments,
-        eq(activityComments.activityId, activities.id),
-      )
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
-      .groupBy(
-        activities.id,
-        activities.type,
-        activities.metadata,
-        activities.createdAt,
-        users.id,
-        users.name,
-        users.email,
-      )
       .orderBy(desc(activities.createdAt), desc(activities.id))
       .limit(limit);
   }
