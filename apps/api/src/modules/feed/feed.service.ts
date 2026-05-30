@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   FeedFilterOptionsDto,
+  FeedActivityDto,
   FeedPageDto,
   FeedPeriod,
   GetFeedQueryDto,
 } from "./feed.dto";
+import { buildRandomActivity, randomItem } from "./activity-generator";
+import { FeedRealtimeGateway } from "./feed-realtime.gateway";
 import { FeedRepository } from "./feed.repository";
 
 const DEFAULT_FEED_LIMIT = 30;
@@ -16,7 +19,10 @@ const FEED_PERIODS = {
 
 @Injectable()
 export class FeedService {
-  constructor(private readonly feedRepository: FeedRepository) {}
+  constructor(
+    private readonly feedRealtimeGateway: FeedRealtimeGateway,
+    private readonly feedRepository: FeedRepository,
+  ) {}
 
   async getFeed({
     cursor,
@@ -54,6 +60,27 @@ export class FeedService {
     const actors = await this.feedRepository.getFeedActors();
 
     return { actors };
+  }
+
+  async createRandomFeedActivity(): Promise<FeedActivityDto | null> {
+    const actors = await this.feedRepository.getActivityActors();
+
+    if (actors.length === 0) {
+      return null;
+    }
+
+    const actor = randomItem(actors);
+    const activity = await this.feedRepository.createFeedActivity(
+      buildRandomActivity(actor),
+    );
+    const finalActivity = {
+      ...activity,
+      actor,
+    };
+
+    this.feedRealtimeGateway.emitActivityCreated(finalActivity);
+
+    return finalActivity;
   }
 
   async markActivityRead(activityId: string) {

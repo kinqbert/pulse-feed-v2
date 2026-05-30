@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useFeedInfiniteQuery } from "../api/feed";
 import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
 import { useFeedRealtimeActivities } from "../hooks/useFeedRealtimeActivities";
+import { useFeedScrollOnPrepend } from "../hooks/usePreserveFeedScrollOnPrepend";
 import { FeedFilters } from "./FeedFilters";
 import { FeedItem } from "./FeedItem";
 
@@ -27,11 +28,15 @@ export const Feed = () => {
   const listRef = useRef<HTMLDivElement>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
 
-  const activities = feedQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const activities = useMemo(
+    () => feedQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [feedQuery.data?.pages],
+  );
 
   const virtualizer = useWindowVirtualizer({
     count: activities.length,
-    estimateSize: () => 240,
+    estimateSize: () => 92,
+    getItemKey: (index) => activities[index]?.id ?? index,
     overscan: 5,
     scrollMargin,
   });
@@ -55,6 +60,12 @@ export const Feed = () => {
     };
   }, [activities.length]);
 
+  useFeedScrollOnPrepend({
+    activities,
+    scrollMargin,
+    virtualizer,
+  });
+
   const virtualItems = virtualizer.getVirtualItems();
   const shouldShowEmptyState =
     !feedQuery.isPending && !feedQuery.isError && activities.length === 0;
@@ -69,7 +80,7 @@ export const Feed = () => {
                 Feed
               </Heading>
               <Text as="p" color="gray">
-                Latest activity across comments, mentions, and reactions.
+                Latest activity across comments, mentions, tasks, and deploys.
               </Text>
               <FeedFilters />
             </Box>

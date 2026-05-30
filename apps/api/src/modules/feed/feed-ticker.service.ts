@@ -4,21 +4,21 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from "@nestjs/common";
-import { FeedRealtimeGateway } from "./feed-realtime.gateway";
-import { FeedRepository } from "./feed.repository";
+import { FeedService } from "./feed.service";
 
-const MIN_TICK_DELAY_MS = 10_000;
-const MAX_TICK_DELAY_MS = 15_000;
+const MIN_TICK_DELAY_MS = 20_000;
+const MAX_TICK_DELAY_MS = 30_000;
+
+const getRandomTickDelayMs = () =>
+  MIN_TICK_DELAY_MS +
+  Math.floor(Math.random() * (MAX_TICK_DELAY_MS - MIN_TICK_DELAY_MS + 1));
 
 @Injectable()
 export class FeedTickerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(FeedTickerService.name);
-  private timeout: NodeJS.Timeout | undefined;
+  private timeout: ReturnType<typeof setTimeout> | undefined;
 
-  constructor(
-    private readonly feedRealtimeGateway: FeedRealtimeGateway,
-    private readonly feedRepository: FeedRepository,
-  ) {}
+  constructor(private readonly feedService: FeedService) {}
 
   onModuleInit() {
     this.scheduleNextTick();
@@ -31,15 +31,12 @@ export class FeedTickerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private scheduleNextTick() {
-    this.timeout = setTimeout(
-      () => void this.tick(),
-      this.getNextTickDelayMs(),
-    );
+    this.timeout = setTimeout(() => void this.tick(), getRandomTickDelayMs());
   }
 
   private async tick() {
     try {
-      await this.feedRepository.createRandomFeedActivity();
+      await this.feedService.createRandomFeedActivity();
     } catch (error: unknown) {
       this.logger.error(
         "Failed to create realtime feed activity",
@@ -48,12 +45,5 @@ export class FeedTickerService implements OnModuleInit, OnModuleDestroy {
     } finally {
       this.scheduleNextTick();
     }
-  }
-
-  private getNextTickDelayMs() {
-    return (
-      MIN_TICK_DELAY_MS +
-      Math.floor(Math.random() * (MAX_TICK_DELAY_MS - MIN_TICK_DELAY_MS + 1))
-    );
   }
 }

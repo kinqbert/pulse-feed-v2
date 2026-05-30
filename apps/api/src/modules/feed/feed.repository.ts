@@ -2,13 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { and, asc, desc, eq, gte, lt, or, type SQL } from "drizzle-orm";
 import { db } from "../../db/db";
 import { activities, type ActivityType, users } from "../../db/schema";
-import { buildRandomActivity, randomItem } from "./activity-generator";
-import { FeedRealtimeGateway } from "./feed-realtime.gateway";
 
 @Injectable()
 export class FeedRepository {
-  constructor(private readonly feedRealtimeGateway: FeedRealtimeGateway) {}
-
   async getFeedActivities({
     cursor,
     filters,
@@ -83,23 +79,21 @@ export class FeedRepository {
       .orderBy(asc(users.name), asc(users.email));
   }
 
-  async createRandomFeedActivity() {
-    const actors = await db
+  getActivityActors() {
+    return db
       .select({
         id: users.id,
         name: users.name,
         email: users.email,
       })
-      .from(users);
+      .from(users)
+      .orderBy(asc(users.name), asc(users.email));
+  }
 
-    if (actors.length === 0) {
-      return null;
-    }
-
-    const actor = randomItem(actors);
-    const [activity] = await db
+  async createFeedActivity(activity: typeof activities.$inferInsert) {
+    const [createdActivity] = await db
       .insert(activities)
-      .values(buildRandomActivity(actor))
+      .values(activity)
       .returning({
         id: activities.id,
         type: activities.type,
@@ -108,14 +102,7 @@ export class FeedRepository {
         createdAt: activities.createdAt,
       });
 
-    const finalActivity = {
-      ...activity,
-      actor,
-    };
-
-    this.feedRealtimeGateway.emitActivityCreated(finalActivity);
-
-    return finalActivity;
+    return createdActivity;
   }
 
   async markActivityRead(activityId: string) {
