@@ -4,7 +4,7 @@ import { CONFIG } from "../lib/config";
 import * as schema from "./schema";
 import { Pool } from "pg";
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: CONFIG.DATABASE_URL,
   max: 10,
 });

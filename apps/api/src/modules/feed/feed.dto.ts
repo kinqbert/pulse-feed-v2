@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
+  IsOptional,
   IsString,
   IsUUID,
   ValidateNested,
@@ -40,4 +41,14 @@ export class FeedActivityDto {
 
   @IsInt()
   declare commentsCount: number;
+}
+
+export class FeedPageDto {
+  @ValidateNested({ each: true })
+  @Type(() => FeedActivityDto)
+  declare items: FeedActivityDto[];
+
+  @IsString()
+  @IsOptional()
+  declare nextCursor: string | null;
 }

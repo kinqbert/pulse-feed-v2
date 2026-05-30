@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "./client";
 
 const activityLabels = {
@@ -37,18 +37,37 @@ export type FeedActivity = {
   commentsCount: number;
 };
 
+export type FeedPage = {
+  items: FeedActivity[];
+  nextCursor: string | null;
+};
+
 export const getActivityLabel = (type: ActivityType) => activityLabels[type];
 
-async function fetchFeed(): Promise<FeedActivity[]> {
-  const response = await api.get<FeedActivity[]>("/feed");
+async function fetchFeedPage({
+  cursor,
+  limit = 30,
+}: {
+  cursor?: string;
+  limit?: number;
+}): Promise<FeedPage> {
+  const response = await api.get<FeedPage>("/feed", {
+    params: {
+      cursor,
+      limit,
+    },
+  });
 
   return response.data;
 }
 
-export function useFeedQuery() {
-  return useQuery({
-    queryKey: ["feed"],
-    queryFn: fetchFeed,
+export function useFeedInfiniteQuery() {
+  return useInfiniteQuery({
+    queryKey: ["feed"] as const,
+    queryFn: ({ pageParam }) =>
+      fetchFeedPage({ cursor: pageParam || undefined }),
+    initialPageParam: "",
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
 

@@ -1,44 +1,64 @@
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
+  Button,
   Callout,
   Card,
   Container,
   Flex,
   Heading,
   Section,
-  Skeleton,
+  Spinner,
   Text,
 } from "@radix-ui/themes";
-import { useFeedQuery } from "../api/feed";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useFeedInfiniteQuery } from "../api/feed";
 import { FeedItem } from "./FeedItem";
 
-function FeedSkeleton() {
-  return (
-    <Flex direction="column" gap="3">
-      {Array.from({ length: 3 }, (_, index) => (
-        <Card key={index} size="3">
-          <Flex gap="3" align="start">
-            <Skeleton width="40px" height="40px" />
-            <Box flexGrow="1">
-              <Skeleton height="18px" width="45%" mb="2" />
-              <Skeleton height="24px" width="80%" mb="3" />
-              <Skeleton height="16px" width="30%" />
-            </Box>
-          </Flex>
-        </Card>
-      ))}
-    </Flex>
-  );
-}
-
 export const Feed = () => {
-  const feedQuery = useFeedQuery();
+  const feedQuery = useFeedInfiniteQuery();
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;
+
+  const listRef = useRef<HTMLDivElement>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  const activities = feedQuery.data?.pages.flatMap((page) => page.items) ?? [];
+
+  const virtualizer = useWindowVirtualizer({
+    count: activities.length,
+    estimateSize: () => 240,
+    overscan: 5,
+    scrollMargin,
+  });
+
+  useEffect(() => {
+    const updateScrollMargin = () => {
+      if (!listRef.current) {
+        return;
+      }
+
+      setScrollMargin(
+        listRef.current.getBoundingClientRect().top + window.scrollY,
+      );
+    };
+
+    updateScrollMargin();
+    window.addEventListener("resize", updateScrollMargin);
+
+    return () => {
+      window.removeEventListener("resize", updateScrollMargin);
+    };
+  }, [activities.length]);
+
+  const virtualItems = virtualizer.getVirtualItems();
+  const shouldShowEmptyState =
+    !feedQuery.isPending && !feedQuery.isError && activities.length === 0;
 
   return (
-    <Section size="4" className="app-shell">
+    <Section>
       <Container size="2">
-        <Flex direction="column" gap="5">
-          <Flex align="center" justify="between" gap="4" wrap="wrap">
+        <Flex direction="column">
+          <Flex align="center" justify="between" gap="4" wrap="wrap" mb="4">
             <Box>
               <Heading size="8" mb="2">
                 Feed
@@ -49,7 +69,11 @@ export const Feed = () => {
             </Box>
           </Flex>
 
-          {feedQuery.isLoading ? <FeedSkeleton /> : null}
+          {feedQuery.isPending ? (
+            <Flex align="center" justify="center" py="6">
+              <Spinner size="3" />
+            </Flex>
+          ) : null}
 
           {feedQuery.isError ? (
             <Callout.Root color="red" role="alert">
@@ -59,19 +83,62 @@ export const Feed = () => {
             </Callout.Root>
           ) : null}
 
-          {feedQuery.data?.length === 0 ? (
+          {shouldShowEmptyState ? (
             <Card size="3">
               <Text color="gray">No feed activity yet.</Text>
             </Card>
           ) : null}
 
-          {feedQuery.data && feedQuery.data.length > 0 ? (
-            <Flex direction="column" gap="3">
-              {feedQuery.data.map((activity) => (
-                <FeedItem key={activity.id} activity={activity} />
-              ))}
-            </Flex>
+          {activities.length > 0 ? (
+            <Box ref={listRef}>
+              <Box
+                position="relative"
+                width="100%"
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                }}
+              >
+                {virtualItems.map((virtualRow) => {
+                  const activity = activities[virtualRow.index];
+
+                  return (
+                    <Box
+                      key={virtualRow.key}
+                      ref={virtualizer.measureElement}
+                      data-index={virtualRow.index}
+                      position="absolute"
+                      top="0"
+                      left="0"
+                      width="100%"
+                      pb="3"
+                      style={{
+                        transform: `translateY(${
+                          virtualRow.start - scrollMargin
+                        }px)`,
+                      }}
+                    >
+                      {activity && <FeedItem activity={activity} />}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
           ) : null}
+
+          <Flex align="center" justify="center">
+            {hasNextPage ? (
+              <Button
+                type="button"
+                variant="soft"
+                disabled={isFetchingNextPage}
+                onClick={() => void fetchNextPage()}
+              >
+                {isFetchingNextPage ? "Loading..." : "Load more activities"}
+              </Button>
+            ) : (
+              <Text color="gray">You've scrolled to the end! Congrats!</Text>
+            )}
+          </Flex>
         </Flex>
       </Container>
     </Section>

@@ -1,11 +1,17 @@
 import { Injectable } from "@nestjs/common";
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, lt, or } from "drizzle-orm";
 import { db } from "../../db/db";
 import { activities, activityComments, users } from "../../db/schema";
 
 @Injectable()
 export class FeedRepository {
-  async getAllFeedActivities() {
+  async getFeedActivities({
+    cursor,
+    limit,
+  }: {
+    cursor?: { createdAt: Date; id: string };
+    limit: number;
+  }) {
     return db
       .select({
         id: activities.id,
@@ -25,6 +31,17 @@ export class FeedRepository {
         activityComments,
         eq(activityComments.activityId, activities.id),
       )
+      .where(
+        cursor
+          ? or(
+              lt(activities.createdAt, cursor.createdAt),
+              and(
+                eq(activities.createdAt, cursor.createdAt),
+                lt(activities.id, cursor.id),
+              ),
+            )
+          : undefined,
+      )
       .groupBy(
         activities.id,
         activities.type,
@@ -34,6 +51,7 @@ export class FeedRepository {
         users.name,
         users.email,
       )
-      .orderBy(desc(activities.createdAt));
+      .orderBy(desc(activities.createdAt), desc(activities.id))
+      .limit(limit);
   }
 }
