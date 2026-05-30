@@ -1,4 +1,12 @@
-import { Controller, Get, Query, ValidationPipe } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Query,
+  ValidationPipe,
+} from "@nestjs/common";
 import { FeedFilterOptionsDto, FeedPageDto, GetFeedQueryDto } from "./feed.dto";
 import { FeedService } from "./feed.service";
 
@@ -17,5 +25,10 @@ export class FeedController {
     query: GetFeedQueryDto,
   ): Promise<FeedPageDto> {
     return this.feedService.getFeed(query);
+  }
+
+  @Patch(":activityId/read")
+  markActivityRead(@Param("activityId", new ParseUUIDPipe()) activityId: string) {
+    return this.feedService.markActivityRead(activityId);
   }
 }

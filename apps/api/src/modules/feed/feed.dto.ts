@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
@@ -68,6 +69,9 @@ export class FeedActivityDto {
 
   @IsObject()
   declare metadata: ActivityMetadata;
+
+  @IsBoolean()
+  declare isRead: boolean;
 
   @IsDate()
   declare createdAt: Date;

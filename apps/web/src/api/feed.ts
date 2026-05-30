@@ -1,4 +1,10 @@
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { api } from "./client";
 
 const activityLabels = {
@@ -51,6 +57,7 @@ export type DeploymentMetadata = {
 type BaseFeedActivity = {
   id: string;
   createdAt: string;
+  isRead: boolean;
   actor: ActivityActor;
 };
 
@@ -179,5 +186,42 @@ async function createActivityComment({
 export function useCreateActivityCommentMutation() {
   return useMutation({
     mutationFn: createActivityComment,
+  });
+}
+
+async function markActivityRead(activityId: string): Promise<void> {
+  await api.patch(`/feed/${activityId}/read`);
+}
+
+export function useMarkActivityReadMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: markActivityRead,
+    onSuccess: (_data, activityId) => {
+      queryClient.setQueriesData<InfiniteData<FeedPage>>(
+        {
+          predicate: (query) =>
+            query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
+        },
+        (data) => {
+          if (!data) {
+            return data;
+          }
+
+          return {
+            ...data,
+            pages: data.pages.map((page) => ({
+              ...page,
+              items: page.items.map((activity) =>
+                activity.id === activityId
+                  ? { ...activity, isRead: true }
+                  : activity,
+              ),
+            })),
+          };
+        },
+      );
+    },
   });
 }

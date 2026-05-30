@@ -51,6 +51,7 @@ export class FeedRepository {
         id: activities.id,
         type: activities.type,
         metadata: activities.metadata,
+        isRead: activities.isRead,
         createdAt: activities.createdAt,
         actor: {
           id: users.id,
@@ -76,5 +77,18 @@ export class FeedRepository {
       .innerJoin(activities, eq(activities.actorId, users.id))
       .groupBy(users.id, users.name, users.email)
       .orderBy(asc(users.name), asc(users.email));
+  }
+
+  async markActivityRead(activityId: string) {
+    const [activity] = await db
+      .update(activities)
+      .set({ isRead: true })
+      .where(eq(activities.id, activityId))
+      .returning({
+        id: activities.id,
+        isRead: activities.isRead,
+      });
+
+    return activity;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   FeedFilterOptionsDto,
   FeedPageDto,
@@ -54,6 +54,16 @@ export class FeedService {
     const actors = await this.feedRepository.getFeedActors();
 
     return { actors };
+  }
+
+  async markActivityRead(activityId: string) {
+    const activity = await this.feedRepository.markActivityRead(activityId);
+
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+
+    return activity;
   }
 
   private createCursor(createdAt: Date, id: string) {

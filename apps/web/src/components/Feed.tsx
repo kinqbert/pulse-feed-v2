@@ -120,7 +120,13 @@ export const Feed = () => {
                         }px)`,
                       }}
                     >
-                      {activity && <FeedItem activity={activity} />}
+                      {activity && (
+                        <FeedItem
+                          activity={activity}
+                          isFirst={virtualRow.index === 0}
+                          isLast={virtualRow.index === activities.length - 1}
+                        />
+                      )}
                     </Box>
                   );
                 })}
@@ -132,7 +138,7 @@ export const Feed = () => {
             {hasNextPage ? (
               <Button
                 type="button"
-                variant="soft"
+                variant="surface"
                 disabled={isFetchingNextPage}
                 onClick={() => void fetchNextPage()}
               >

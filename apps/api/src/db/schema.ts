@@ -1,4 +1,5 @@
 import { pgEnum } from "drizzle-orm/pg-core";
+import { boolean } from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { pgTable, text, uuid } from "drizzle-orm/pg-core";
@@ -58,6 +59,7 @@ export const activities = pgTable("activities", {
     .notNull()
     .references(() => users.id),
   metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
+  isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
