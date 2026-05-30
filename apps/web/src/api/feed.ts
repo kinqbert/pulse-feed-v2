@@ -4,7 +4,8 @@ import { api } from "./client";
 const activityLabels = {
   comment: "Comment",
   mention: "Mention",
-  reaction: "Reaction",
+  task_update: "Task update",
+  deployment: "Deploy",
 } as const;
 
 export type ActivityType = keyof typeof activityLabels;
@@ -28,14 +29,49 @@ export type CreateActivityCommentInput = {
   content: string;
 };
 
-export type FeedActivity = {
+export type CommentMetadata = {
+  entityName: string;
+};
+
+export type MentionMetadata = {
+  entityName: string;
+};
+
+export type TaskUpdateMetadata = {
+  taskName: string;
+  previousValue?: string;
+  newValue: string;
+};
+
+export type DeploymentMetadata = {
+  serviceName: string;
+  status: "success" | "failed";
+};
+
+type BaseFeedActivity = {
   id: string;
-  type: ActivityType;
-  title: string;
   createdAt: string;
   actor: ActivityActor;
   commentsCount: number;
 };
+
+export type FeedActivity =
+  | (BaseFeedActivity & {
+      type: "comment";
+      metadata: CommentMetadata;
+    })
+  | (BaseFeedActivity & {
+      type: "mention";
+      metadata: MentionMetadata;
+    })
+  | (BaseFeedActivity & {
+      type: "task_update";
+      metadata: TaskUpdateMetadata;
+    })
+  | (BaseFeedActivity & {
+      type: "deployment";
+      metadata: DeploymentMetadata;
+    });
 
 export type FeedPage = {
   items: FeedActivity[];

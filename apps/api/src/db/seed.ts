@@ -1,5 +1,11 @@
 import { db, pool } from "./db";
-import { activities, activityComments, ActivityType, users } from "./schema";
+import {
+  activities,
+  activityComments,
+  type ActivityMetadata,
+  ActivityType,
+  users,
+} from "./schema";
 
 const USER_COUNT = 20;
 const ACTIVITY_COUNT = 10000;
@@ -22,29 +28,29 @@ const characterNames = [
   "Steven Gomez",
 ];
 
-const activityTemplates: Record<ActivityType, string[]> = {
-  [ActivityType.Comment]: [
-    "commented on the launch checklist",
-    "left feedback on the weekly update",
-    "added context to the design review",
-    "replied to the customer thread",
-    "shared notes from the planning session",
-  ],
-  [ActivityType.Mention]: [
-    "mentioned the support team in a triage note",
-    "mentioned product in a release discussion",
-    "mentioned design in a handoff thread",
-    "mentioned engineering in an incident follow-up",
-    "mentioned operations in a rollout update",
-  ],
-  [ActivityType.Reaction]: [
-    "reacted to the sprint recap",
-    "reacted to a milestone announcement",
-    "reacted to the incident summary",
-    "reacted to the product demo",
-    "reacted to a dashboard update",
-  ],
-};
+const entityNames = [
+  "launch checklist",
+  "weekly update",
+  "design review",
+  "customer thread",
+  "planning session",
+];
+
+const taskNames = [
+  "QA handoff",
+  "Release notes",
+  "Incident follow-up",
+  "Billing audit",
+  "Dashboard refresh",
+];
+
+const taskStatuses = ["Backlog", "In progress", "Blocked", "In review", "Done"];
+
+const serviceNames = ["web", "api", "worker", "billing", "notifications"];
+
+const deploymentStatuses: Array<
+  ActivityMetadata<typeof ActivityType.Deployment>["status"]
+> = ["success", "failed"];
 
 const commentContents = [
   "Better call Saul!",
@@ -83,6 +89,33 @@ function randomDateWithinLastDays(days: number) {
   return new Date(now - offset);
 }
 
+function buildActivityMetadata(type: ActivityType): ActivityMetadata {
+  switch (type) {
+    case ActivityType.Comment:
+    case ActivityType.Mention:
+      return {
+        entityName: randomItem(entityNames),
+      };
+    case ActivityType.TaskUpdate: {
+      const previousValue = randomItem(taskStatuses);
+      const newValue = randomItem(
+        taskStatuses.filter((status) => status !== previousValue),
+      );
+
+      return {
+        taskName: randomItem(taskNames),
+        previousValue,
+        newValue,
+      };
+    }
+    case ActivityType.Deployment:
+      return {
+        serviceName: randomItem(serviceNames),
+        status: randomItem(deploymentStatuses),
+      };
+  }
+}
+
 async function seed() {
   const runId = Date.now().toString(36);
 
@@ -106,12 +139,11 @@ async function seed() {
   const activityValues = Array.from({ length: ACTIVITY_COUNT }, () => {
     const type = randomItem(Object.values(ActivityType));
     const actor = randomItem(seededUsers);
-    const title = `${actor.name} ${randomItem(activityTemplates[type])}`;
 
     return {
       type,
       actorId: actor.id,
-      title,
+      metadata: buildActivityMetadata(type),
       createdAt: randomDateWithinLastDays(45),
     };
   });

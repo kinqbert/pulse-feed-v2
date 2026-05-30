@@ -55,7 +55,7 @@ export class FeedRepository {
       .select({
         id: activities.id,
         type: activities.type,
-        title: activities.title,
+        metadata: activities.metadata,
         createdAt: activities.createdAt,
         commentsCount: count(activityComments.id),
         actor: {
@@ -74,7 +74,7 @@ export class FeedRepository {
       .groupBy(
         activities.id,
         activities.type,
-        activities.title,
+        activities.metadata,
         activities.createdAt,
         users.id,
         users.name,

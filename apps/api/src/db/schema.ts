@@ -1,4 +1,5 @@
 import { pgEnum } from "drizzle-orm/pg-core";
+import { jsonb } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 
@@ -6,10 +7,32 @@ import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 export const ActivityType = {
   Comment: "comment",
   Mention: "mention",
-  Reaction: "reaction",
+  TaskUpdate: "task_update",
+  Deployment: "deployment",
 } as const;
 
 export type ActivityType = (typeof ActivityType)[keyof typeof ActivityType];
+
+export type ActivityMetadataByType = {
+  [ActivityType.Comment]: {
+    entityName: string;
+  };
+  [ActivityType.Mention]: {
+    entityName: string;
+  };
+  [ActivityType.TaskUpdate]: {
+    taskName: string;
+    previousValue?: string;
+    newValue: string;
+  };
+  [ActivityType.Deployment]: {
+    serviceName: string;
+    status: "success" | "failed";
+  };
+};
+
+export type ActivityMetadata<TType extends ActivityType = ActivityType> =
+  ActivityMetadataByType[TType];
 
 // UTILS
 function enumToPgEnum<T extends Record<string, string>>(obj: T) {
@@ -34,7 +57,7 @@ export const activities = pgTable("activities", {
   actorId: uuid("actor_id")
     .notNull()
     .references(() => users.id),
-  title: text("text").notNull(),
+  metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -11,7 +12,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { ActivityType } from "../../db/schema";
+import { type ActivityMetadata, ActivityType } from "../../db/schema";
 
 export const FeedPeriod = {
   All: "all",
@@ -65,8 +66,8 @@ export class FeedActivityDto {
   @IsEnum(ActivityType)
   declare type: ActivityType;
 
-  @IsString()
-  declare title: string;
+  @IsObject()
+  declare metadata: ActivityMetadata;
 
   @IsDate()
   declare createdAt: Date;

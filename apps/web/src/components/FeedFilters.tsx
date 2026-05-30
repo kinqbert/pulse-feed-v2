@@ -14,7 +14,8 @@ const typeOptions: Array<{ label: string; value: ActivityType | "all" }> = [
   { label: "All types", value: "all" },
   { label: getActivityLabel("comment"), value: "comment" },
   { label: getActivityLabel("mention"), value: "mention" },
-  { label: getActivityLabel("reaction"), value: "reaction" },
+  { label: getActivityLabel("task_update"), value: "task_update" },
+  { label: getActivityLabel("deployment"), value: "deployment" },
 ];
 
 const periodOptions: Array<{ label: string; value: FeedPeriod }> = [
