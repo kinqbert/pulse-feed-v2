@@ -1,14 +1,12 @@
 import { Box, Button, Flex, Select, Text } from "@radix-ui/themes";
 import {
+  defaultFeedFilters,
   getActivityLabel,
   useFeedFilterOptionsQuery,
   type ActivityType,
   type FeedPeriod,
 } from "../api/feed";
-import {
-  defaultFeedFilters,
-  useFeedFiltersStore,
-} from "../stores/useFeedFiltersStore";
+import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
 
 const typeOptions: Array<{ label: string; value: ActivityType | "all" }> = [
   { label: "All types", value: "all" },
@@ -36,11 +34,8 @@ const selectTriggerStyle = {
 
 export const FeedFilters = () => {
   const filterOptionsQuery = useFeedFilterOptionsQuery();
-  const filters = useFeedFiltersStore((state) => state.filters);
-  const resetFilters = useFeedFiltersStore((state) => state.resetFilters);
-  const setActorId = useFeedFiltersStore((state) => state.setActorId);
-  const setPeriod = useFeedFiltersStore((state) => state.setPeriod);
-  const setType = useFeedFiltersStore((state) => state.setType);
+  const { filters, resetFilters, setActorId, setPeriod, setType } =
+    useFeedFiltersSearchParams();
   const hasActiveFilters =
     filters.actorId !== defaultFeedFilters.actorId ||
     filters.period !== defaultFeedFilters.period ||

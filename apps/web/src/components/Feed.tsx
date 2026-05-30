@@ -13,12 +13,12 @@ import {
 } from "@radix-ui/themes";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useFeedInfiniteQuery } from "../api/feed";
-import { useFeedFiltersStore } from "../stores/useFeedFiltersStore";
+import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
 import { FeedFilters } from "./FeedFilters";
 import { FeedItem } from "./FeedItem";
 
 export const Feed = () => {
-  const filters = useFeedFiltersStore((state) => state.filters);
+  const { filters } = useFeedFiltersSearchParams();
   const feedQuery = useFeedInfiniteQuery(filters);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;
 

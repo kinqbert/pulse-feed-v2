@@ -92,6 +92,12 @@ export type FeedFilters = {
   type: ActivityType | "all";
 };
 
+export const defaultFeedFilters: FeedFilters = {
+  actorId: "all",
+  period: "all",
+  type: "all",
+};
+
 export type FeedFilterOptions = {
   actors: ActivityActor[];
 };
