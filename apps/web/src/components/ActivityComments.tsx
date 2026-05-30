@@ -2,8 +2,15 @@ import { Avatar, Box, Flex, Separator, Text } from "@radix-ui/themes";
 import { useActivityCommentsQuery } from "../api/feed";
 import { formatActivityDate } from "../utils/formatActivityDate";
 import { getInitials } from "../utils/getInitials";
+import { ActivityCommentForm } from "./ActivityCommentForm";
 
-export const ActivityComments = ({ activityId }: { activityId: string }) => {
+export const ActivityComments = ({
+  activityId,
+  actorId,
+}: {
+  activityId: string;
+  actorId: string;
+}) => {
   const commentsQuery = useActivityCommentsQuery(activityId);
 
   return (
@@ -42,6 +49,7 @@ export const ActivityComments = ({ activityId }: { activityId: string }) => {
           </Box>
         </Flex>
       ))}
+      <ActivityCommentForm activityId={activityId} actorId={actorId} />
     </Flex>
   );
 };

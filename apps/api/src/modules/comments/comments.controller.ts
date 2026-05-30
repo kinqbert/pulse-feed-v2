@@ -1,5 +1,5 @@
-import { Controller, Get, Param } from "@nestjs/common";
-import { ActivityCommentDto } from "./comments.dto";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { ActivityCommentDto, CreateActivityCommentDto } from "./comments.dto";
 import { CommentsService } from "./comments.service";
 
 @Controller("activities/:activityId/comments")
@@ -11,5 +11,16 @@ export class CommentsController {
     @Param("activityId") activityId: string,
   ): Promise<ActivityCommentDto[]> {
     return this.commentsService.getActivityComments(activityId);
+  }
+
+  @Post()
+  createActivityComment(
+    @Param("activityId") activityId: string,
+    @Body() createCommentDto: CreateActivityCommentDto,
+  ): Promise<ActivityCommentDto> {
+    return this.commentsService.createActivityComment(
+      activityId,
+      createCommentDto,
+    );
   }
 }

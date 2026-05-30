@@ -2,6 +2,7 @@ import { Type } from "class-transformer";
 import {
   IsDate,
   IsEmail,
+  IsNotEmpty,
   IsString,
   IsUUID,
   ValidateNested,
@@ -34,4 +35,13 @@ export class ActivityCommentDto {
   @ValidateNested()
   @Type(() => CommentActorDto)
   declare actor: CommentActorDto;
+}
+
+export class CreateActivityCommentDto {
+  @IsUUID()
+  declare actorId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  declare content: string;
 }

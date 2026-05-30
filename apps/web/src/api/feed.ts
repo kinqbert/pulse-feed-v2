@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
 
@@ -26,6 +26,12 @@ export type ActivityComment = {
   content: string;
   createdAt: string;
   actor: ActivityActor;
+};
+
+export type CreateActivityCommentInput = {
+  activityId: string;
+  actorId: string;
+  content: string;
 };
 
 export type FeedActivity = {
@@ -72,5 +78,34 @@ export function useActivityCommentsQuery(activityId: string) {
   return useQuery({
     queryKey: ["activities", activityId, "comments"],
     queryFn: () => fetchActivityComments(activityId),
+  });
+}
+
+async function createActivityComment({
+  activityId,
+  actorId,
+  content,
+}: CreateActivityCommentInput): Promise<ActivityComment> {
+  const response = await fetch(apiUrl(`/activities/${activityId}/comments`), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      actorId,
+      content,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Create activity comment request failed");
+  }
+
+  return response.json();
+}
+
+export function useCreateActivityCommentMutation() {
+  return useMutation({
+    mutationFn: createActivityComment,
   });
 }
