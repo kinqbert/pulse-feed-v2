@@ -12,6 +12,7 @@ export class CommentsService {
 
   createActivityComment(
     activityId: string,
+    actorId: string,
     createCommentDto: CreateActivityCommentDto,
   ): Promise<ActivityCommentDto> {
     const content = createCommentDto.content.trim();
@@ -22,7 +23,7 @@ export class CommentsService {
 
     return this.commentsRepository.createActivityComment({
       activityId,
-      actorId: createCommentDto.actorId,
+      actorId,
       content,
     });
   }

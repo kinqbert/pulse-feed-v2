@@ -58,12 +58,7 @@ export const FeedItem = ({ activity }: { activity: FeedActivity }) => {
               0 comments
             </Text>
           )}
-          {showComments ? (
-            <ActivityComments
-              activityId={activity.id}
-              actorId={activity.actor.id}
-            />
-          ) : null}
+          {showComments ? <ActivityComments activityId={activity.id} /> : null}
         </Box>
       </Flex>
     </Card>

@@ -4,13 +4,7 @@ import { formatActivityDate } from "../utils/formatActivityDate";
 import { getInitials } from "../utils/getInitials";
 import { ActivityCommentForm } from "./ActivityCommentForm";
 
-export const ActivityComments = ({
-  activityId,
-  actorId,
-}: {
-  activityId: string;
-  actorId: string;
-}) => {
+export const ActivityComments = ({ activityId }: { activityId: string }) => {
   const commentsQuery = useActivityCommentsQuery(activityId);
 
   return (
@@ -49,7 +43,7 @@ export const ActivityComments = ({
           </Box>
         </Flex>
       ))}
-      <ActivityCommentForm activityId={activityId} actorId={actorId} />
+      <ActivityCommentForm activityId={activityId} />
     </Flex>
   );
 };

@@ -38,9 +38,6 @@ export class ActivityCommentDto {
 }
 
 export class CreateActivityCommentDto {
-  @IsUUID()
-  declare actorId: string;
-
   @IsString()
   @IsNotEmpty()
   declare content: string;

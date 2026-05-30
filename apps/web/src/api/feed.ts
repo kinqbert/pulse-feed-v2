@@ -1,10 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-
-const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
-
-function apiUrl(path: string) {
-  return `${apiBaseUrl}${path}`;
-}
+import { api } from "./client";
 
 const activityLabels = {
   comment: "Comment",
@@ -30,7 +25,6 @@ export type ActivityComment = {
 
 export type CreateActivityCommentInput = {
   activityId: string;
-  actorId: string;
   content: string;
 };
 
@@ -46,13 +40,9 @@ export type FeedActivity = {
 export const getActivityLabel = (type: ActivityType) => activityLabels[type];
 
 async function fetchFeed(): Promise<FeedActivity[]> {
-  const response = await fetch(apiUrl("/feed"));
+  const response = await api.get<FeedActivity[]>("/feed");
 
-  if (!response.ok) {
-    throw new Error("Feed request failed");
-  }
-
-  return response.json();
+  return response.data;
 }
 
 export function useFeedQuery() {
@@ -65,13 +55,11 @@ export function useFeedQuery() {
 async function fetchActivityComments(
   activityId: string,
 ): Promise<ActivityComment[]> {
-  const response = await fetch(apiUrl(`/activities/${activityId}/comments`));
+  const response = await api.get<ActivityComment[]>(
+    `/activities/${activityId}/comments`,
+  );
 
-  if (!response.ok) {
-    throw new Error("Activity comments request failed");
-  }
-
-  return response.json();
+  return response.data;
 }
 
 export function useActivityCommentsQuery(activityId: string) {
@@ -83,25 +71,16 @@ export function useActivityCommentsQuery(activityId: string) {
 
 async function createActivityComment({
   activityId,
-  actorId,
   content,
 }: CreateActivityCommentInput): Promise<ActivityComment> {
-  const response = await fetch(apiUrl(`/activities/${activityId}/comments`), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      actorId,
+  const response = await api.post<ActivityComment>(
+    `/activities/${activityId}/comments`,
+    {
       content,
-    }),
-  });
+    },
+  );
 
-  if (!response.ok) {
-    throw new Error("Create activity comment request failed");
-  }
-
-  return response.json();
+  return response.data;
 }
 
 export function useCreateActivityCommentMutation() {

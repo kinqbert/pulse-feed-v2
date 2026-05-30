@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       "/activities": "http://localhost:3000",
       "/feed": "http://localhost:3000",
+      "/me": "http://localhost:3000",
     },
   },
 });

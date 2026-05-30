@@ -2,17 +2,13 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Box, Button, Flex, Text, TextArea } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCreateActivityCommentMutation } from "../api/feed";
+import { useUserStore } from "../stores/useUserStore";
 
-export const ActivityCommentForm = ({
-  activityId,
-  actorId,
-}: {
-  activityId: string;
-  actorId: string;
-}) => {
+export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+  const userId = useUserStore((state) => state.userId);
   const createCommentMutation = useCreateActivityCommentMutation();
   const trimmedContent = content.trim();
 
@@ -33,14 +29,13 @@ export const ActivityCommentForm = ({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!trimmedContent || createCommentMutation.isPending) {
+    if (!userId || !trimmedContent || createCommentMutation.isPending) {
       return;
     }
 
     createCommentMutation.mutate(
       {
         activityId,
-        actorId,
         content: trimmedContent,
       },
       {
@@ -80,7 +75,9 @@ export const ActivityCommentForm = ({
             <Button
               type="submit"
               size="2"
-              disabled={!trimmedContent || createCommentMutation.isPending}
+              disabled={
+                !userId || !trimmedContent || createCommentMutation.isPending
+              }
             >
               {createCommentMutation.isPending ? "Posting..." : "Post"}
             </Button>
@@ -88,6 +85,11 @@ export const ActivityCommentForm = ({
           {createCommentMutation.isError ? (
             <Text size="2" color="red">
               Could not post comment.
+            </Text>
+          ) : null}
+          {!userId ? (
+            <Text size="2" color="gray">
+              Loading user...
             </Text>
           ) : null}
         </Flex>
