@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { db } from "../../db/db";
-import { activities, users } from "../../db/schema";
+import { activities, activityComments, users } from "../../db/schema";
 
 @Injectable()
 export class FeedRepository {
@@ -12,6 +12,7 @@ export class FeedRepository {
         type: activities.type,
         title: activities.title,
         createdAt: activities.createdAt,
+        commentsCount: count(activityComments.id),
         actor: {
           id: users.id,
           name: users.name,
@@ -20,6 +21,19 @@ export class FeedRepository {
       })
       .from(activities)
       .innerJoin(users, eq(activities.actorId, users.id))
+      .leftJoin(
+        activityComments,
+        eq(activityComments.activityId, activities.id),
+      )
+      .groupBy(
+        activities.id,
+        activities.type,
+        activities.title,
+        activities.createdAt,
+        users.id,
+        users.name,
+        users.email,
+      )
       .orderBy(desc(activities.createdAt));
   }
 }

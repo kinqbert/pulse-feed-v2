@@ -2,15 +2,12 @@ import { Type } from "class-transformer";
 import {
   IsDate,
   IsEmail,
-  IsEnum,
-  IsInt,
   IsString,
   IsUUID,
   ValidateNested,
 } from "class-validator";
-import { ActivityType } from "../../db/schema";
 
-export class ActivityActorDto {
+export class CommentActorDto {
   @IsUUID()
   declare id: string;
 
@@ -21,23 +18,20 @@ export class ActivityActorDto {
   declare email: string;
 }
 
-export class FeedActivityDto {
+export class ActivityCommentDto {
   @IsUUID()
   declare id: string;
 
-  @IsEnum(ActivityType)
-  declare type: ActivityType;
+  @IsUUID()
+  declare activityId: string;
 
   @IsString()
-  declare title: string;
+  declare content: string;
 
   @IsDate()
   declare createdAt: Date;
 
   @ValidateNested()
-  @Type(() => ActivityActorDto)
-  declare actor: ActivityActorDto;
-
-  @IsInt()
-  declare commentsCount: number;
+  @Type(() => CommentActorDto)
+  declare actor: CommentActorDto;
 }

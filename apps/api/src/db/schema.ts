@@ -39,3 +39,17 @@ export const activities = pgTable("activities", {
     .notNull()
     .defaultNow(),
 });
+
+export const activityComments = pgTable("activity_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  activityId: uuid("activity_id")
+    .notNull()
+    .references(() => activities.id),
+  actorId: uuid("actor_id")
+    .notNull()
+    .references(() => users.id),
+  content: text("text").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
