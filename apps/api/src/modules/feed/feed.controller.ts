@@ -1,22 +1,21 @@
-import {
-  Controller,
-  DefaultValuePipe,
-  Get,
-  ParseIntPipe,
-  Query,
-} from "@nestjs/common";
-import { FeedPageDto } from "./feed.dto";
+import { Controller, Get, Query, ValidationPipe } from "@nestjs/common";
+import { FeedFilterOptionsDto, FeedPageDto, GetFeedQueryDto } from "./feed.dto";
 import { FeedService } from "./feed.service";
 
 @Controller("feed")
 export class FeedController {
   constructor(private readonly feedService: FeedService) {}
 
+  @Get("filters")
+  getFeedFilters(): Promise<FeedFilterOptionsDto> {
+    return this.feedService.getFeedFilters();
+  }
+
   @Get()
   getFeed(
-    @Query("cursor") cursor?: string,
-    @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Query(new ValidationPipe({ transform: true }))
+    query: GetFeedQueryDto,
   ): Promise<FeedPageDto> {
-    return this.feedService.getFeed({ cursor, limit });
+    return this.feedService.getFeed(query);
   }
 }

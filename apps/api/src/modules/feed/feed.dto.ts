@@ -7,9 +7,45 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
+  Min,
   ValidateNested,
 } from "class-validator";
 import { ActivityType } from "../../db/schema";
+
+export const FeedPeriod = {
+  All: "all",
+  Last24Hours: "24h",
+  Last7Days: "7d",
+  Last30Days: "30d",
+} as const;
+
+export type FeedPeriod = (typeof FeedPeriod)[keyof typeof FeedPeriod];
+
+export class GetFeedQueryDto {
+  @IsString()
+  @IsOptional()
+  declare cursor?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  @IsOptional()
+  declare limit?: number;
+
+  @IsEnum(FeedPeriod)
+  @IsOptional()
+  declare period?: FeedPeriod;
+
+  @IsUUID()
+  @IsOptional()
+  declare actorId?: string;
+
+  @IsEnum(ActivityType)
+  @IsOptional()
+  declare type?: ActivityType;
+}
 
 export class ActivityActorDto {
   @IsUUID()
@@ -51,4 +87,10 @@ export class FeedPageDto {
   @IsString()
   @IsOptional()
   declare nextCursor: string | null;
+}
+
+export class FeedFilterOptionsDto {
+  @ValidateNested({ each: true })
+  @Type(() => ActivityActorDto)
+  declare actors: ActivityActorDto[];
 }

@@ -13,10 +13,13 @@ import {
 } from "@radix-ui/themes";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useFeedInfiniteQuery } from "../api/feed";
+import { useFeedFiltersStore } from "../stores/useFeedFiltersStore";
+import { FeedFilters } from "./FeedFilters";
 import { FeedItem } from "./FeedItem";
 
 export const Feed = () => {
-  const feedQuery = useFeedInfiniteQuery();
+  const filters = useFeedFiltersStore((state) => state.filters);
+  const feedQuery = useFeedInfiniteQuery(filters);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -59,13 +62,14 @@ export const Feed = () => {
       <Container size="2">
         <Flex direction="column">
           <Flex align="center" justify="between" gap="4" wrap="wrap" mb="4">
-            <Box>
+            <Box width="100%">
               <Heading size="8" mb="2">
                 Feed
               </Heading>
               <Text as="p" color="gray">
                 Latest activity across comments, mentions, and reactions.
               </Text>
+              <FeedFilters />
             </Box>
           </Flex>
 

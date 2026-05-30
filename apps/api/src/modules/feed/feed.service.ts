@@ -1,9 +1,18 @@
 import { Injectable } from "@nestjs/common";
-import { FeedPageDto } from "./feed.dto";
+import {
+  FeedFilterOptionsDto,
+  FeedPageDto,
+  FeedPeriod,
+  GetFeedQueryDto,
+} from "./feed.dto";
 import { FeedRepository } from "./feed.repository";
 
 const DEFAULT_FEED_LIMIT = 30;
-const MAX_FEED_LIMIT = 1000;
+const FEED_PERIODS = {
+  "24h": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+} as const;
 
 @Injectable()
 export class FeedService {
@@ -11,15 +20,21 @@ export class FeedService {
 
   async getFeed({
     cursor,
+    actorId,
     limit = DEFAULT_FEED_LIMIT,
-  }: {
-    cursor?: string;
-    limit?: number;
-  }): Promise<FeedPageDto> {
-    const pageSize = Math.min(Math.max(limit, 1), MAX_FEED_LIMIT);
+    period,
+    type,
+  }: GetFeedQueryDto): Promise<FeedPageDto> {
+    const pageSize = limit ?? DEFAULT_FEED_LIMIT;
     const cursorValue = this.parseCursor(cursor);
+    const filters = {
+      actorId,
+      from: this.getPeriodStart(period),
+      type,
+    };
     const activities = await this.feedRepository.getFeedActivities({
       cursor: cursorValue,
+      filters,
       limit: pageSize + 1,
     });
     const items = activities.slice(0, pageSize);
@@ -33,6 +48,12 @@ export class FeedService {
           ? this.createCursor(lastItem.createdAt, lastItem.id)
           : null,
     };
+  }
+
+  async getFeedFilters(): Promise<FeedFilterOptionsDto> {
+    const actors = await this.feedRepository.getFeedActors();
+
+    return { actors };
   }
 
   private createCursor(createdAt: Date, id: string) {
@@ -58,5 +79,13 @@ export class FeedService {
     }
 
     return { createdAt, id };
+  }
+
+  private getPeriodStart(period?: FeedPeriod) {
+    if (!period || period === FeedPeriod.All) {
+      return undefined;
+    }
+
+    return new Date(Date.now() - FEED_PERIODS[period]);
   }
 }
