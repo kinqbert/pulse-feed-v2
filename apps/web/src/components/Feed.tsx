@@ -14,10 +14,12 @@ import {
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useFeedInfiniteQuery } from "../api/feed";
 import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
+import { useFeedRealtimeActivities } from "../hooks/useFeedRealtimeActivities";
 import { FeedFilters } from "./FeedFilters";
 import { FeedItem } from "./FeedItem";
 
 export const Feed = () => {
+  useFeedRealtimeActivities();
   const { filters } = useFeedFiltersSearchParams();
   const feedQuery = useFeedInfiniteQuery(filters);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;

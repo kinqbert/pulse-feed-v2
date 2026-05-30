@@ -98,6 +98,8 @@ export const defaultFeedFilters: FeedFilters = {
   type: "all",
 };
 
+export const FEED_ACTIVITY_CREATED_EVENT = "feed:activity-created";
+
 export type FeedFilterOptions = {
   actors: ActivityActor[];
 };
