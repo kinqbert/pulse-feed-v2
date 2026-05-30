@@ -25,6 +25,11 @@ const timelineActionStyles = {
   cursor: "pointer",
 };
 
+const transitionStyles = {
+  transition:
+    "background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease",
+};
+
 type ActivityContentProps = {
   activity: FeedActivity;
 };
@@ -133,6 +138,7 @@ export const FeedItem = ({
           boxShadow: activity.isRead
             ? "0 0 0 3px var(--gray-2)"
             : "0 0 0 3px var(--teal-3), 0 0 0 5px var(--gray-2)",
+          ...transitionStyles,
         }}
       />
       <Box style={{ paddingLeft: "6px" }}>
@@ -144,6 +150,7 @@ export const FeedItem = ({
             borderRadius: "6px",
             background: activity.isRead ? "var(--gray-1)" : "var(--teal-2)",
             padding: "10px 12px",
+            ...transitionStyles,
           }}
         >
           <Box
@@ -175,6 +182,7 @@ export const FeedItem = ({
                   color: "var(--teal-11)",
                   fontWeight: 600,
                   lineHeight: 1,
+                  ...transitionStyles,
                 }}
               >
                 New
