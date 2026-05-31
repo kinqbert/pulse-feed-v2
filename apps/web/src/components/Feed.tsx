@@ -102,7 +102,7 @@ export const Feed = () => {
               </Flex>
               <Text as="p" color="gray">
                 Latest activity across comments, mentions, tasks, and deploys.
-                New activity arrives every 20 to 30 seconds.
+                New activity arrives every 10 to 15 seconds.
               </Text>
               <FeedFilters />
             </Box>

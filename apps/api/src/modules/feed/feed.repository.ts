@@ -204,15 +204,7 @@ export class FeedRepository {
   }
 
   async markActivityRead(activityId: string, userId: string) {
-    await db
-      .update(userActivities)
-      .set({ isRead: true })
-      .where(
-        and(
-          eq(userActivities.activityId, activityId),
-          eq(userActivities.userId, userId),
-        ),
-      );
+    return this.updateActivityReadState(activityId, userId, true);
   }
 
   async markAllActivitiesRead(userId: string) {
@@ -223,14 +215,27 @@ export class FeedRepository {
   }
 
   async markActivityUnread(activityId: string, userId: string) {
-    await db
+    return this.updateActivityReadState(activityId, userId, false);
+  }
+
+  private async updateActivityReadState(
+    activityId: string,
+    userId: string,
+    isRead: boolean,
+  ) {
+    const [updatedActivity] = await db
       .update(userActivities)
-      .set({ isRead: false })
+      .set({ isRead })
       .where(
         and(
           eq(userActivities.activityId, activityId),
           eq(userActivities.userId, userId),
         ),
-      );
+      )
+      .returning({
+        activityId: userActivities.activityId,
+      });
+
+    return Boolean(updatedActivity);
   }
 }

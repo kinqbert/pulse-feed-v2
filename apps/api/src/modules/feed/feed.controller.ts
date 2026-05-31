@@ -32,7 +32,7 @@ export class FeedController {
 
   @Get()
   getFeed(
-    @UserId() userId: string,
+    @UserId(new ParseUUIDPipe()) userId: string,
     @Query(new ValidationPipe({ transform: true }))
     query: GetFeedQueryDto,
   ): Promise<FeedPageDto> {
