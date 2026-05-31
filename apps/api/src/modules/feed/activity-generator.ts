@@ -45,7 +45,7 @@ export function buildActivitySearchText({
   metadata: ActivityMetadata;
   type: ActivityType;
 }) {
-  return [type, actor.name, actor.email, ...Object.values(metadata)]
+  return [type, actor.name, ...Object.values(metadata)]
     .filter((value): value is string => typeof value === "string")
     .join(" ")
     .toLowerCase()
