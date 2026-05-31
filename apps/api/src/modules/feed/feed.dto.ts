@@ -2,6 +2,7 @@ import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
+  IsDateString,
   IsEmail,
   IsEnum,
   IsInt,
@@ -15,15 +16,6 @@ import {
 } from "class-validator";
 import { type ActivityMetadata, ActivityType } from "../../db/schema";
 
-export const FeedPeriod = {
-  All: "all",
-  Last24Hours: "24h",
-  Last7Days: "7d",
-  Last30Days: "30d",
-} as const;
-
-export type FeedPeriod = (typeof FeedPeriod)[keyof typeof FeedPeriod];
-
 export class GetFeedQueryDto {
   @IsString()
   @IsOptional()
@@ -36,9 +28,13 @@ export class GetFeedQueryDto {
   @IsOptional()
   declare limit?: number;
 
-  @IsEnum(FeedPeriod)
+  @IsDateString()
   @IsOptional()
-  declare period?: FeedPeriod;
+  declare from?: string;
+
+  @IsDateString()
+  @IsOptional()
+  declare to?: string;
 
   @IsUUID()
   @IsOptional()

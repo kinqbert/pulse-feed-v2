@@ -25,6 +25,18 @@ const timelineActionStyles = {
   cursor: "pointer",
 };
 
+const underlineTimelineAction = (
+  event: React.MouseEvent<HTMLButtonElement>,
+) => {
+  event.currentTarget.style.textDecoration = "underline";
+};
+
+const removeTimelineActionUnderline = (
+  event: React.MouseEvent<HTMLButtonElement>,
+) => {
+  event.currentTarget.style.textDecoration = "none";
+};
+
 const transitionStyles = {
   transition:
     "background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease",
@@ -204,6 +216,8 @@ export const FeedItem = ({
                 type="button"
                 disabled={markActivityReadMutation.isPending}
                 onClick={() => markActivityReadMutation.mutate(activity.id)}
+                onMouseEnter={underlineTimelineAction}
+                onMouseLeave={removeTimelineActionUnderline}
                 style={timelineActionStyles}
               >
                 Mark as read
@@ -212,6 +226,8 @@ export const FeedItem = ({
             <button
               type="button"
               onClick={() => setShowComments((current) => !current)}
+              onMouseEnter={underlineTimelineAction}
+              onMouseLeave={removeTimelineActionUnderline}
               style={timelineActionStyles}
             >
               {showComments ? "Hide comments" : "Show comments"}

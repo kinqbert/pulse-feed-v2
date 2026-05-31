@@ -3,7 +3,6 @@ import {
   FeedFilterOptionsDto,
   FeedActivityDto,
   FeedPageDto,
-  FeedPeriod,
   GetFeedQueryDto,
 } from "./feed.dto";
 import { buildRandomActivity, randomItem } from "./activity-generator";
@@ -11,12 +10,6 @@ import { FeedRealtimeGateway } from "./feed-realtime.gateway";
 import { FeedRepository } from "./feed.repository";
 
 const DEFAULT_FEED_LIMIT = 30;
-const FEED_PERIODS = {
-  "24h": 24 * 60 * 60 * 1000,
-  "7d": 7 * 24 * 60 * 60 * 1000,
-  "30d": 30 * 24 * 60 * 60 * 1000,
-} as const;
-
 @Injectable()
 export class FeedService {
   constructor(
@@ -29,8 +22,9 @@ export class FeedService {
     {
       cursor,
       actorId,
+      from,
       limit = DEFAULT_FEED_LIMIT,
-      period,
+      to,
       type,
     }: GetFeedQueryDto,
   ): Promise<FeedPageDto> {
@@ -38,7 +32,8 @@ export class FeedService {
     const cursorValue = this.parseCursor(cursor);
     const filters = {
       actorId,
-      from: this.getPeriodStart(period),
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
       type,
     };
     const activities = await this.feedRepository.getFeedActivities({
@@ -124,13 +119,5 @@ export class FeedService {
     }
 
     return { createdAt, id };
-  }
-
-  private getPeriodStart(period?: FeedPeriod) {
-    if (!period || period === FeedPeriod.All) {
-      return undefined;
-    }
-
-    return new Date(Date.now() - FEED_PERIODS[period]);
   }
 }

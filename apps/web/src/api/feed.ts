@@ -84,17 +84,17 @@ export type FeedPage = {
   nextCursor: string | null;
 };
 
-export type FeedPeriod = "all" | "24h" | "7d" | "30d";
-
 export type FeedFilters = {
   actorId: string;
-  period: FeedPeriod;
+  from: string;
+  to: string;
   type: ActivityType | "all";
 };
 
 export const defaultFeedFilters: FeedFilters = {
   actorId: "all",
-  period: "all",
+  from: "",
+  to: "",
   type: "all",
 };
 
@@ -109,22 +109,25 @@ export const getActivityLabel = (type: ActivityType) => activityLabels[type];
 async function fetchFeedPage({
   actorId,
   cursor,
+  from,
   limit = 30,
-  period,
+  to,
   type,
 }: {
   actorId?: string;
   cursor?: string;
+  from?: string;
   limit?: number;
-  period?: FeedPeriod;
+  to?: string;
   type?: ActivityType;
 }): Promise<FeedPage> {
   const response = await api.get<FeedPage>("/feed", {
     params: {
       actorId,
       cursor,
+      from,
       limit,
-      period,
+      to,
       type,
     },
   });
@@ -139,12 +142,27 @@ export function useFeedInfiniteQuery(filters: FeedFilters) {
       fetchFeedPage({
         actorId: filters.actorId === "all" ? undefined : filters.actorId,
         cursor: pageParam || undefined,
-        period: filters.period === "all" ? undefined : filters.period,
+        from: filters.from
+          ? getStartOfDay(filters.from).toISOString()
+          : undefined,
+        to: filters.to ? getStartOfNextDay(filters.to).toISOString() : undefined,
         type: filters.type === "all" ? undefined : filters.type,
       }),
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
+}
+
+export function getStartOfDay(date: string) {
+  return new Date(`${date}T00:00:00`);
+}
+
+export function getStartOfNextDay(date: string) {
+  const nextDay = getStartOfDay(date);
+
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  return nextDay;
 }
 
 async function fetchFeedFilterOptions(): Promise<FeedFilterOptions> {

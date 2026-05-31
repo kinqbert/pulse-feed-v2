@@ -20,6 +20,7 @@ export class FeedRepository {
     filters?: {
       actorId?: string;
       from?: Date;
+      to?: Date;
       type?: ActivityType;
     };
     limit: number;
@@ -47,6 +48,10 @@ export class FeedRepository {
 
     if (filters?.from) {
       whereConditions.push(gte(activities.createdAt, filters.from));
+    }
+
+    if (filters?.to) {
+      whereConditions.push(lt(activities.createdAt, filters.to));
     }
 
     if (filters?.type) {

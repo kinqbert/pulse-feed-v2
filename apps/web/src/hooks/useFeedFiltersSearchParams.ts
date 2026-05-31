@@ -3,11 +3,9 @@ import {
   defaultFeedFilters,
   type ActivityType,
   type FeedFilters,
-  type FeedPeriod,
 } from "../api/feed";
 
 const feedFilterSearchParamsChange = "feed-filter-search-params-change";
-const feedPeriods = ["all", "24h", "7d", "30d"] satisfies FeedPeriod[];
 const activityTypes = [
   "comment",
   "mention",
@@ -15,24 +13,36 @@ const activityTypes = [
   "deployment",
 ] satisfies ActivityType[];
 
-function isFeedPeriod(value: string): value is FeedPeriod {
-  return feedPeriods.includes(value as FeedPeriod);
-}
-
 function isActivityType(value: string): value is ActivityType {
   return activityTypes.includes(value as ActivityType);
 }
 
+function isDateInputValue(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
 function getFeedFiltersFromSearchParams(): FeedFilters {
   const params = new URLSearchParams(window.location.search);
-  const period = params.get("period");
   const type = params.get("type");
   const actorId = params.get("actorId");
+  const from = params.get("from");
+  const to = params.get("to");
 
   return {
     actorId: actorId || defaultFeedFilters.actorId,
-    period:
-      period && isFeedPeriod(period) ? period : defaultFeedFilters.period,
+    from: from && isDateInputValue(from) ? from : defaultFeedFilters.from,
+    to: to && isDateInputValue(to) ? to : defaultFeedFilters.to,
     type: type && isActivityType(type) ? type : defaultFeedFilters.type,
   };
 }
@@ -41,7 +51,8 @@ function writeFeedFiltersToSearchParams(filters: FeedFilters) {
   const url = new URL(window.location.href);
 
   setFilterSearchParam(url.searchParams, "actorId", filters.actorId);
-  setFilterSearchParam(url.searchParams, "period", filters.period);
+  setFilterSearchParam(url.searchParams, "from", filters.from);
+  setFilterSearchParam(url.searchParams, "to", filters.to);
   setFilterSearchParam(url.searchParams, "type", filters.type);
 
   window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
@@ -93,7 +104,8 @@ export function useFeedFiltersSearchParams() {
     filters,
     resetFilters,
     setActorId: (actorId: string) => updateFilters({ ...filters, actorId }),
-    setPeriod: (period: FeedPeriod) => updateFilters({ ...filters, period }),
+    setDateRange: (from: string, to: string) =>
+      updateFilters({ ...filters, from, to }),
     setType: (type: ActivityType | "all") =>
       updateFilters({ ...filters, type }),
   };

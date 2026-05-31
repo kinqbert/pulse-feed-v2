@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
 import {
   FEED_ACTIVITY_CREATED_EVENT,
+  getStartOfDay,
+  getStartOfNextDay,
   type FeedActivity,
   type FeedFilters,
   type FeedPage,
@@ -14,6 +16,16 @@ function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
   }
 
   if (filters.type !== "all" && activity.type !== filters.type) {
+    return false;
+  }
+
+  const createdAt = new Date(activity.createdAt);
+
+  if (filters.from && createdAt < getStartOfDay(filters.from)) {
+    return false;
+  }
+
+  if (filters.to && createdAt >= getStartOfNextDay(filters.to)) {
     return false;
   }
 
