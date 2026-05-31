@@ -35,7 +35,7 @@ export const Feed = () => {
 
   const virtualizer = useWindowVirtualizer({
     count: activities.length,
-    estimateSize: () => 92,
+    estimateSize: () => 120,
     getItemKey: (index) => activities[index]?.id ?? index,
     overscan: 5,
     scrollMargin,
@@ -63,7 +63,6 @@ export const Feed = () => {
   useFeedScrollOnPrepend({
     activities,
     scrollMargin,
-    virtualizer,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
