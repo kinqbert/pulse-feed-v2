@@ -36,6 +36,23 @@ export function randomItem<T>(items: readonly T[]) {
   return items[randomInt(items.length)];
 }
 
+export function buildActivitySearchText({
+  actor,
+  metadata,
+  type,
+}: {
+  actor: ActivityActor;
+  metadata: ActivityMetadata;
+  type: ActivityType;
+}) {
+  return [type, actor.name, actor.email, ...Object.values(metadata)]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function buildActivityMetadata(type: ActivityType): ActivityMetadata {
   switch (type) {
     case ActivityType.Comment:
@@ -65,10 +82,12 @@ export function buildActivityMetadata(type: ActivityType): ActivityMetadata {
 
 export function buildRandomActivity(actor: ActivityActor) {
   const type = randomItem(Object.values(ActivityType));
+  const metadata = buildActivityMetadata(type);
 
   return {
     actorId: actor.id,
-    metadata: buildActivityMetadata(type),
+    metadata,
+    searchText: buildActivitySearchText({ actor, metadata, type }),
     type,
   };
 }

@@ -8,6 +8,7 @@ import {
   ActivityType,
   users,
 } from "./schema";
+import { buildActivitySearchText } from "../modules/feed/activity-generator";
 
 const USER_COUNT = 20;
 const ACTIVITY_COUNT = 10000;
@@ -140,16 +141,19 @@ async function seed() {
     .returning({
       id: users.id,
       name: users.name,
+      email: users.email,
     });
 
   const activityValues = Array.from({ length: ACTIVITY_COUNT }, () => {
     const type = randomItem(Object.values(ActivityType));
     const actor = randomItem(seededUsers);
+    const metadata = buildActivityMetadata(type);
 
     return {
       type,
       actorId: actor.id,
-      metadata: buildActivityMetadata(type),
+      metadata,
+      searchText: buildActivitySearchText({ actor, metadata, type }),
       createdAt: randomDateWithinLastDays(45),
     };
   });

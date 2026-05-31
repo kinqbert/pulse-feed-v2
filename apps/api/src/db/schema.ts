@@ -59,6 +59,7 @@ export const activities = pgTable("activities", {
     .notNull()
     .references(() => users.id),
   metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
+  searchText: text("search_text").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
