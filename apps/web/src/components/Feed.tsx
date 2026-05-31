@@ -12,7 +12,10 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useFeedInfiniteQuery } from "../api/feed";
+import {
+  useFeedInfiniteQuery,
+  useUnreadActivitiesCountQuery,
+} from "../api/feed";
 import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
 import { useFeedRealtimeActivities } from "../hooks/useFeedRealtimeActivities";
 import { useFeedScrollOnPrepend } from "../hooks/usePreserveFeedScrollOnPrepend";
@@ -23,6 +26,7 @@ export const Feed = () => {
   useFeedRealtimeActivities();
   const { filters } = useFeedFiltersSearchParams();
   const feedQuery = useFeedInfiniteQuery(filters);
+  const unreadActivitiesCountQuery = useUnreadActivitiesCountQuery();
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feedQuery;
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -75,9 +79,14 @@ export const Feed = () => {
         <Flex direction="column">
           <Flex align="center" justify="between" gap="4" wrap="wrap" mb="4">
             <Box width="100%">
-              <Heading size="8" mb="2">
-                Feed
-              </Heading>
+              <Flex align="baseline" gap="3" mb="2">
+                <Heading size="8">Feed</Heading>
+                {unreadActivitiesCountQuery.data ? (
+                  <Text size="2" color="teal" weight="bold">
+                    {unreadActivitiesCountQuery.data.count} unread
+                  </Text>
+                ) : null}
+              </Flex>
               <Text as="p" color="gray">
                 Latest activity across comments, mentions, tasks, and deploys.
                 New activity arrives every 20 to 30 seconds.

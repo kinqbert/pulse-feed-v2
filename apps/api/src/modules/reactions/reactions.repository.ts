@@ -1,17 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "../../db/db";
-import { activities, activityReactions } from "../../db/schema";
+import { activityReactions, userActivities } from "../../db/schema";
 
 @Injectable()
 export class ReactionsRepository {
-  async activityExists(activityId: string) {
+  async activityBelongsToUser(activityId: string, userId: string) {
     const [activity] = await db
       .select({
-        id: activities.id,
+        activityId: userActivities.activityId,
       })
-      .from(activities)
-      .where(eq(activities.id, activityId))
+      .from(userActivities)
+      .where(
+        and(
+          eq(userActivities.activityId, activityId),
+          eq(userActivities.userId, userId),
+        ),
+      )
       .limit(1);
 
     return Boolean(activity);

@@ -7,6 +7,7 @@ import {
   type FeedActivity,
   type FeedFilters,
   type FeedPage,
+  type UnreadActivitiesCount,
 } from "../api/feed";
 import { socket } from "../lib/sockets";
 
@@ -22,7 +23,6 @@ function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
   const searchText = [
     activity.type,
     activity.actor.name,
-    activity.actor.email,
     ...Object.values(activity.metadata),
   ]
     .filter((value): value is string => typeof value === "string")
@@ -30,7 +30,6 @@ function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
-
   const query = filters.query.trim().toLowerCase().replace(/\s+/g, " ");
 
   if (query && !searchText.includes(query)) {
@@ -60,6 +59,10 @@ export function useFeedRealtimeActivities() {
           query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
         refetchType: "active",
       });
+      void queryClient.invalidateQueries({
+        queryKey: ["unread-activities-count"],
+        refetchType: "active",
+      });
     };
 
     const handleActivityCreated = (activity: FeedActivity) => {
@@ -78,15 +81,12 @@ export function useFeedRealtimeActivities() {
         queryClient.setQueryData<InfiniteData<FeedPage>>(
           query.queryKey,
           (data) => {
-            if (!data) {
-              return data;
-            }
-
-            const alreadyExists = data.pages.some((page) =>
-              page.items.some((item) => item.id === activity.id),
-            );
-
-            if (alreadyExists) {
+            if (
+              !data ||
+              data.pages.some((page) =>
+                page.items.some((item) => item.id === activity.id),
+              )
+            ) {
               return data;
             }
 
@@ -101,9 +101,13 @@ export function useFeedRealtimeActivities() {
           },
         );
       }
+
+      queryClient.setQueryData<UnreadActivitiesCount>(
+        ["unread-activities-count"],
+        (data) => (data ? { count: data.count + 1 } : data),
+      );
     };
 
-    // todo -- move to lib or other place
     socket.on(FEED_ACTIVITY_CREATED_EVENT, handleActivityCreated);
     socket.io.on("reconnect", refetchActiveFeedQueries);
 

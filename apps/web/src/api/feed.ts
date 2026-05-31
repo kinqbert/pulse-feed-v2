@@ -123,6 +123,10 @@ export type FeedFilterOptions = {
   actors: ActivityActor[];
 };
 
+export type UnreadActivitiesCount = {
+  count: number;
+};
+
 export const getActivityLabel = (type: ActivityType) => activityLabels[type];
 
 async function fetchFeedPage({
@@ -205,6 +209,19 @@ export function useFeedFilterOptionsQuery() {
   });
 }
 
+async function fetchUnreadActivitiesCount(): Promise<UnreadActivitiesCount> {
+  const response = await api.get<UnreadActivitiesCount>("/feed/unread-count");
+
+  return response.data;
+}
+
+export function useUnreadActivitiesCountQuery() {
+  return useQuery({
+    queryKey: ["unread-activities-count"] as const,
+    queryFn: fetchUnreadActivitiesCount,
+  });
+}
+
 async function fetchActivityComments(
   activityId: string,
 ): Promise<ActivityComment[]> {
@@ -274,6 +291,12 @@ function updateActivityReadState(
   );
 }
 
+function invalidateUnreadActivitiesCount(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({
+    queryKey: ["unread-activities-count"],
+  });
+}
+
 export function useMarkActivityReadMutation() {
   const queryClient = useQueryClient();
 
@@ -281,6 +304,7 @@ export function useMarkActivityReadMutation() {
     mutationFn: markActivityRead,
     onSuccess: (_data, activityId) => {
       updateActivityReadState(queryClient, activityId, true);
+      invalidateUnreadActivitiesCount(queryClient);
     },
   });
 }
@@ -317,6 +341,7 @@ export function useMarkAllActivitiesReadMutation() {
           };
         },
       );
+      invalidateUnreadActivitiesCount(queryClient);
     },
   });
 }
@@ -332,6 +357,7 @@ export function useMarkActivityUnreadMutation() {
     mutationFn: markActivityUnread,
     onSuccess: (_data, activityId) => {
       updateActivityReadState(queryClient, activityId, false);
+      invalidateUnreadActivitiesCount(queryClient);
     },
   });
 }

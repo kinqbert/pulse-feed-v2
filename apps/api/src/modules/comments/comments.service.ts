@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { ActivityCommentDto, CreateActivityCommentDto } from "./comments.dto";
 import { CommentsRepository } from "./comments.repository";
 
@@ -6,15 +10,21 @@ import { CommentsRepository } from "./comments.repository";
 export class CommentsService {
   constructor(private readonly commentsRepository: CommentsRepository) {}
 
-  getActivityComments(activityId: string): Promise<ActivityCommentDto[]> {
+  async getActivityComments(
+    activityId: string,
+    userId: string,
+  ): Promise<ActivityCommentDto[]> {
+    await this.ensureActivityBelongsToUser(activityId, userId);
+
     return this.commentsRepository.getActivityComments(activityId);
   }
 
-  createActivityComment(
+  async createActivityComment(
     activityId: string,
     actorId: string,
     createCommentDto: CreateActivityCommentDto,
   ): Promise<ActivityCommentDto> {
+    await this.ensureActivityBelongsToUser(activityId, actorId);
     const content = createCommentDto.content.trim();
 
     if (!content) {
@@ -26,5 +36,16 @@ export class CommentsService {
       actorId,
       content,
     });
+  }
+
+  private async ensureActivityBelongsToUser(
+    activityId: string,
+    userId: string,
+  ) {
+    if (
+      !(await this.commentsRepository.activityBelongsToUser(activityId, userId))
+    ) {
+      throw new NotFoundException("Activity not found");
+    }
   }
 }

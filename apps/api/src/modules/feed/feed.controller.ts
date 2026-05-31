@@ -23,6 +23,13 @@ export class FeedController {
     return this.feedService.getFeedFilters(userId);
   }
 
+  @Get("unread-count")
+  getUnreadActivitiesCount(
+    @UserId(new ParseUUIDPipe()) userId: string,
+  ): Promise<{ count: number }> {
+    return this.feedService.getUnreadActivitiesCount(userId);
+  }
+
   @Get()
   getFeed(
     @UserId() userId: string,

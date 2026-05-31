@@ -85,10 +85,7 @@ export class FeedRepository {
 
     if (filters?.query) {
       whereConditions.push(
-        sql`(
-          ${activities.searchText} ilike ${`%${filters.query}%`}
-          or word_similarity(${filters.query}, ${activities.searchText}) > 0.3
-        )`,
+        sql`${activities.searchText} ilike ${`%${filters.query}%`}`,
       );
     }
 
@@ -158,6 +155,22 @@ export class FeedRepository {
       })
       .from(users)
       .orderBy(asc(users.name), asc(users.email));
+  }
+
+  async getUnreadActivitiesCount(userId: string) {
+    const [result] = await db
+      .select({
+        count: sql<number>`count(*)::int`,
+      })
+      .from(userActivities)
+      .where(
+        and(
+          eq(userActivities.userId, userId),
+          eq(userActivities.isRead, false),
+        ),
+      );
+
+    return result?.count ?? 0;
   }
 
   async createFeedActivity(

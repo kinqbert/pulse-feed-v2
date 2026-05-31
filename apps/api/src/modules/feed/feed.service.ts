@@ -63,6 +63,12 @@ export class FeedService {
     return { actors };
   }
 
+  async getUnreadActivitiesCount(userId: string) {
+    const count = await this.feedRepository.getUnreadActivitiesCount(userId);
+
+    return { count };
+  }
+
   async createRandomFeedActivity(): Promise<FeedActivityDto | null> {
     const actors = await this.feedRepository.getActivityActors();
 

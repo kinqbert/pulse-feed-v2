@@ -15,7 +15,7 @@ export class ReactionsService {
     userId: string,
     createReactionDto: CreateActivityReactionDto,
   ) {
-    await this.ensureActivityExists(activityId);
+    await this.ensureActivityBelongsToUser(activityId, userId);
     const emoji = createReactionDto.emoji.trim();
 
     if (!emoji) {
@@ -28,14 +28,22 @@ export class ReactionsService {
   }
 
   async removeReaction(activityId: string, emoji: string, userId: string) {
-    await this.ensureActivityExists(activityId);
+    await this.ensureActivityBelongsToUser(activityId, userId);
     await this.reactionsRepository.removeReaction(activityId, emoji, userId);
 
     return this.reactionsRepository.getActivityReactions(activityId, userId);
   }
 
-  private async ensureActivityExists(activityId: string) {
-    if (!(await this.reactionsRepository.activityExists(activityId))) {
+  private async ensureActivityBelongsToUser(
+    activityId: string,
+    userId: string,
+  ) {
+    if (
+      !(await this.reactionsRepository.activityBelongsToUser(
+        activityId,
+        userId,
+      ))
+    ) {
       throw new NotFoundException("Activity not found");
     }
   }

@@ -1,10 +1,27 @@
 import { Injectable } from "@nestjs/common";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../../db/db";
-import { activityComments, users } from "../../db/schema";
+import { activityComments, userActivities, users } from "../../db/schema";
 
 @Injectable()
 export class CommentsRepository {
+  async activityBelongsToUser(activityId: string, userId: string) {
+    const [activity] = await db
+      .select({
+        activityId: userActivities.activityId,
+      })
+      .from(userActivities)
+      .where(
+        and(
+          eq(userActivities.activityId, activityId),
+          eq(userActivities.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    return Boolean(activity);
+  }
+
   private getCommentById(commentId: string) {
     return db
       .select({
