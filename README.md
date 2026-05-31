@@ -1,1 +1,66 @@
-## Pulse Feed V2
+# Pulse Feed V2
+
+## Overview
+
+Pulse Feed V2 is an activity inbox built with React, NestJS, PostgreSQL, Drizzle ORM, React Query, and Socket.IO.
+
+The feed is ordered newest first and loaded in pages using cursor pagination. The frontend virtualizes the list so it stays usable with large feeds. Filters and search are stored in the URL, which makes filtered views reloadable and shareable.
+
+Read state, replies, and reactions are stored in PostgreSQL. New activities are created randomly by a development ticker with interval from 20 to 30 seconds and sent to the browser over Socket.IO. The browser inserts matching activities into its React Query cache without reloading the whole feed.
+
+Additionally, after a socket reconnect, active queries are refreshed to catch up with events that may have been missed. The same happens on focus change.
+
+## How To Run
+
+Requirements: Node.js, npm, Docker, and Docker Compose.
+
+All the commands below should be run from the root of the repository.
+
+1. Start PostgreSQL:
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Create `apps/api/.env`:
+
+   ```dotenv
+   DATABASE_URL=postgres://pulse:pulse@localhost:5434/pulse
+   PORT=3000
+   CLIENT_URL=http://localhost:5173
+   ```
+
+4. Create `apps/web/.env`:
+
+   ```dotenv
+   VITE_API_URL=http://localhost:3000
+   ```
+
+5. Apply the current Drizzle schema and seed sample data:
+
+   ```bash
+   npm run db:migrate -w api
+   npm run db:seed -w api
+   ```
+
+6. Start the API and web app:
+
+   ```bash
+   npm run dev
+   ```
+
+Open `http://localhost:5173`.
+
+## Things To Do Next
+
+1. One of the things that I would fix in the first place is implementing proper monorepo structure with shared packages for types. Right now, the API and web app are completely separate with no shared code, which leads to a lot of duplication and makes it much harder to keep things in sync. But it would take a bit of time to set up, so I decided to go with the simplest possible setup for this project
+
+2. Right now there is no authentication, the current user is taken from the first one found in the database. Implementing authentication would be a good next step to make the app more realistic and allow testing with multiple users
+
+3. The metadata for activities is currently just a JSON blob that contains not the IDs of the related entities, but their names. This is definitely not how it should be implemented in a real app, in this case I'd at least store IDs in the metadata and join related tables to get the actual data. It also makes sense to consider moving the data into separate table/tables instead of storing it as JSON, especially if we want to be able to filter or sort by that data
