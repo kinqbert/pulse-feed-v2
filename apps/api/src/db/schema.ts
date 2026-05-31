@@ -3,8 +3,7 @@ import { jsonb } from "drizzle-orm/pg-core";
 import { index } from "drizzle-orm/pg-core";
 import { primaryKey } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
-import { customType, pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 
 // ENUMS
 export const ActivityType = {
@@ -42,12 +41,6 @@ function enumToPgEnum<T extends Record<string, string>>(obj: T) {
   return Object.values(obj) as [T[keyof T], ...T[keyof T][]];
 }
 
-const tsvector = customType<{ data: string }>({
-  dataType() {
-    return "tsvector";
-  },
-});
-
 // CORE TABLES
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -70,9 +63,6 @@ export const activities = pgTable(
       .references(() => users.id),
     metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
     searchText: text("search_text").notNull(),
-    searchVector: tsvector("search_vector").generatedAlwaysAs(
-      sql`to_tsvector('simple', search_text)`,
-    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -96,7 +86,6 @@ export const activities = pgTable(
       "gin",
       table.searchText.op("gin_trgm_ops"),
     ),
-    index("activities_search_vector_idx").using("gin", table.searchVector),
   ],
 );
 
