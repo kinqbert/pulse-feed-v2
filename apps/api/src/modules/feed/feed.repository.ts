@@ -4,10 +4,41 @@ import { db } from "../../db/db";
 import {
   activities,
   activityComments,
+  activityReactions,
   activityReads,
   type ActivityType,
   users,
 } from "../../db/schema";
+
+type ActivityReactionSummary = {
+  emoji: string;
+  count: number;
+  hasReacted: boolean;
+};
+
+const getCommentsCount = () =>
+  sql<number>`(select count(*)::int from ${activityComments} where ${activityComments.activityId} = ${activities.id})`;
+
+const getReactionSummaries = (userId: string) =>
+  sql<ActivityReactionSummary[]>`coalesce((
+    select json_agg(
+      json_build_object(
+        'emoji', reaction_summary.emoji,
+        'count', reaction_summary.count,
+        'hasReacted', reaction_summary.has_reacted
+      )
+      order by reaction_summary.emoji
+    )
+    from (
+      select
+        ${activityReactions.emoji} as emoji,
+        count(*)::int as count,
+        bool_or(${activityReactions.userId} = ${userId}) as has_reacted
+      from ${activityReactions}
+      where ${activityReactions.activityId} = ${activities.id}
+      group by ${activityReactions.emoji}
+    ) reaction_summary
+  ), '[]'::json)`;
 
 @Injectable()
 export class FeedRepository {
@@ -65,7 +96,8 @@ export class FeedRepository {
         type: activities.type,
         metadata: activities.metadata,
         isRead: sql<boolean>`${activityReads.activityId} is not null`,
-        commentsCount: sql<number>`(select count(*)::int from ${activityComments} where ${activityComments.activityId} = ${activities.id})`,
+        commentsCount: getCommentsCount(),
+        reactions: getReactionSummaries(userId),
         createdAt: activities.createdAt,
         actor: {
           id: users.id,

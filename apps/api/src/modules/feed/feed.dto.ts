@@ -56,6 +56,17 @@ export class ActivityActorDto {
   declare email: string;
 }
 
+export class ActivityReactionDto {
+  @IsString()
+  declare emoji: string;
+
+  @IsInt()
+  declare count: number;
+
+  @IsBoolean()
+  declare hasReacted: boolean;
+}
+
 export class FeedActivityDto {
   @IsUUID()
   declare id: string;
@@ -71,6 +82,10 @@ export class FeedActivityDto {
 
   @IsInt()
   declare commentsCount: number;
+
+  @ValidateNested({ each: true })
+  @Type(() => ActivityReactionDto)
+  declare reactions: ActivityReactionDto[];
 
   @IsDate()
   declare createdAt: Date;

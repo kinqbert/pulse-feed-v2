@@ -90,3 +90,19 @@ export const activityComments = pgTable("activity_comments", {
     .notNull()
     .defaultNow(),
 });
+
+export const activityReactions = pgTable(
+  "activity_reactions",
+  {
+    activityId: uuid("activity_id")
+      .notNull()
+      .references(() => activities.id),
+    emoji: text("emoji").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => [
+    primaryKey({ columns: [table.activityId, table.emoji, table.userId] }),
+  ],
+);

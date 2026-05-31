@@ -2,6 +2,7 @@ import { db, pool } from "./db";
 import {
   activities,
   activityComments,
+  activityReactions,
   activityReads,
   type ActivityMetadata,
   ActivityType,
@@ -13,6 +14,7 @@ const ACTIVITY_COUNT = 10000;
 const MAX_COMMENTS_PER_ACTIVITY = 3;
 const ACTIVITY_BATCH_SIZE = 250;
 const COMMENT_BATCH_SIZE = 500;
+const ACTIVITY_REACTION_BATCH_SIZE = 500;
 const ACTIVITY_READ_BATCH_SIZE = 500;
 
 const characterNames = [
@@ -65,6 +67,8 @@ const commentContents = [
   "You got me.",
   "I am the one who knocks.",
 ];
+
+const reactionEmojis = ["👍", "🎉", "❤️", "👀", "🚀"];
 
 function randomInt(maxExclusive: number) {
   return Math.floor(Math.random() * maxExclusive);
@@ -179,6 +183,23 @@ async function seed() {
     await db.insert(activityReads).values(batch).onConflictDoNothing();
   }
 
+  const activityReactionValues = seededActivities.flatMap((activity) => {
+    const reactionsCount = randomInt(4);
+
+    return Array.from({ length: reactionsCount }, () => ({
+      activityId: activity.id,
+      emoji: randomItem(reactionEmojis),
+      userId: randomItem(seededUsers).id,
+    }));
+  });
+
+  for (const batch of chunk(
+    activityReactionValues,
+    ACTIVITY_REACTION_BATCH_SIZE,
+  )) {
+    await db.insert(activityReactions).values(batch).onConflictDoNothing();
+  }
+
   const commentValues = seededActivities.flatMap((activity) => {
     const commentsCount = randomInt(MAX_COMMENTS_PER_ACTIVITY + 1);
 
@@ -197,7 +218,7 @@ async function seed() {
   }
 
   console.log(
-    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, ${activityReadValues.length} read states, and ${commentValues.length} comments.`,
+    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, ${activityReadValues.length} read states, ${activityReactionValues.length} reactions, and ${commentValues.length} comments.`,
   );
 }
 

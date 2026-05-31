@@ -7,6 +7,7 @@ import {
   useMarkActivityReadMutation,
 } from "../api/feed";
 import { ActivityComments } from "./ActivityComments";
+import { ActivityReactions } from "./ActivityReactions";
 
 const contentTitleStyles = {
   margin: 0,
@@ -23,18 +24,6 @@ const timelineActionStyles = {
   fontSize: "12px",
   lineHeight: 1.4,
   cursor: "pointer",
-};
-
-const underlineTimelineAction = (
-  event: React.MouseEvent<HTMLButtonElement>,
-) => {
-  event.currentTarget.style.textDecoration = "underline";
-};
-
-const removeTimelineActionUnderline = (
-  event: React.MouseEvent<HTMLButtonElement>,
-) => {
-  event.currentTarget.style.textDecoration = "none";
 };
 
 const transitionStyles = {
@@ -120,6 +109,7 @@ export const FeedItem = ({
   isLast?: boolean;
 }) => {
   const [showComments, setShowComments] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const markActivityReadMutation = useMarkActivityReadMutation();
   const ActivityContent = activityContentByType[activity.type];
 
@@ -216,8 +206,6 @@ export const FeedItem = ({
                 type="button"
                 disabled={markActivityReadMutation.isPending}
                 onClick={() => markActivityReadMutation.mutate(activity.id)}
-                onMouseEnter={underlineTimelineAction}
-                onMouseLeave={removeTimelineActionUnderline}
                 style={timelineActionStyles}
               >
                 Mark as read
@@ -226,15 +214,25 @@ export const FeedItem = ({
             <button
               type="button"
               onClick={() => setShowComments((current) => !current)}
-              onMouseEnter={underlineTimelineAction}
-              onMouseLeave={removeTimelineActionUnderline}
               style={timelineActionStyles}
             >
               {showComments
                 ? "Hide comments"
                 : `Show comments (${activity.commentsCount})`}
             </button>
+            <button
+              type="button"
+              onClick={() => setShowReactionPicker((current) => !current)}
+              style={timelineActionStyles}
+            >
+              {showReactionPicker ? "Hide reactions" : "Show reactions"}
+            </button>
           </Box>
+          <ActivityReactions
+            activityId={activity.id}
+            reactions={activity.reactions}
+            showReactionPicker={showReactionPicker}
+          />
           {showComments ? <ActivityComments activityId={activity.id} /> : null}
         </Box>
       </Box>

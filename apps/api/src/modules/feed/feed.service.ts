@@ -77,6 +77,7 @@ export class FeedService {
       actor,
       commentsCount: 0,
       isRead: false,
+      reactions: [],
     };
 
     this.feedRealtimeGateway.emitActivityCreated(finalActivity);
