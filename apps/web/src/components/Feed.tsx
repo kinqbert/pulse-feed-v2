@@ -61,7 +61,7 @@ export const Feed = () => {
   }, [activities.length]);
 
   useFeedScrollOnPrepend({
-    activities,
+    activitiesLength: activities.length,
     scrollMargin,
   });
 

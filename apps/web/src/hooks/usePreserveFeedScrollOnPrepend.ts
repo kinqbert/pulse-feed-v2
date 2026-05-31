@@ -1,9 +1,5 @@
 import { useLayoutEffect as useEffect } from "react";
 
-type FeedScrollActivity = {
-  id: string;
-};
-
 // this hook is responsible for controlling when to scroll down and when not to after new activity arrives
 //
 // to put it simply, if user can see the top of the list, we'll append activity and scroll the list will go down
@@ -13,10 +9,10 @@ type FeedScrollActivity = {
 //
 // in perfect case, this should be calculated automatically and not hardcoded at 120px
 export function useFeedScrollOnPrepend({
-  activities,
+  activitiesLength,
   scrollMargin,
 }: {
-  activities: FeedScrollActivity[];
+  activitiesLength: number;
   scrollMargin: number;
 }) {
   useEffect(() => {
@@ -29,5 +25,5 @@ export function useFeedScrollOnPrepend({
         window.scrollBy(0, insertedSize);
       }
     }
-  }, [activities, scrollMargin]);
+  }, [activitiesLength, scrollMargin]);
 }
