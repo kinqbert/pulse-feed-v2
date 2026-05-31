@@ -69,6 +69,9 @@ export class FeedActivityDto {
   @IsBoolean()
   declare isRead: boolean;
 
+  @IsInt()
+  declare commentsCount: number;
+
   @IsDate()
   declare createdAt: Date;
 

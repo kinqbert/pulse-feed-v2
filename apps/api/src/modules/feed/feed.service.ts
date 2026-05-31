@@ -75,6 +75,7 @@ export class FeedService {
     const finalActivity = {
       ...activity,
       actor,
+      commentsCount: 0,
       isRead: false,
     };
 

@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gte, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../db/db";
 import {
   activities,
+  activityComments,
   activityReads,
   type ActivityType,
   users,
@@ -64,6 +65,7 @@ export class FeedRepository {
         type: activities.type,
         metadata: activities.metadata,
         isRead: sql<boolean>`${activityReads.activityId} is not null`,
+        commentsCount: sql<number>`(select count(*)::int from ${activityComments} where ${activityComments.activityId} = ${activities.id})`,
         createdAt: activities.createdAt,
         actor: {
           id: users.id,

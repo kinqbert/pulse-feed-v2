@@ -230,7 +230,9 @@ export const FeedItem = ({
               onMouseLeave={removeTimelineActionUnderline}
               style={timelineActionStyles}
             >
-              {showComments ? "Hide comments" : "Show comments"}
+              {showComments
+                ? "Hide comments"
+                : `Show comments (${activity.commentsCount})`}
             </button>
           </Box>
           {showComments ? <ActivityComments activityId={activity.id} /> : null}

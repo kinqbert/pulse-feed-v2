@@ -57,6 +57,7 @@ export type DeploymentMetadata = {
 type BaseFeedActivity = {
   id: string;
   createdAt: string;
+  commentsCount: number;
   isRead: boolean;
   actor: ActivityActor;
 };
