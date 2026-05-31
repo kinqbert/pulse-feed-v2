@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
 import {
   FEED_ACTIVITY_CREATED_EVENT,
@@ -9,7 +8,7 @@ import {
   type FeedPage,
   type UnreadActivitiesCount,
 } from "../api/feed";
-import { socket } from "../lib/sockets";
+import { useSocketEvent, useSocketManagerEvent } from "../lib/sockets";
 
 function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
   if (filters.actorId !== "all" && activity.actor.id !== filters.actorId) {
@@ -52,68 +51,56 @@ function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
 export function useFeedRealtimeActivities() {
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const refetchActiveFeedQueries = () => {
-      void queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
-        refetchType: "active",
-      });
-      void queryClient.invalidateQueries({
-        queryKey: ["unread-activities-count"],
-        refetchType: "active",
-      });
-    };
+  useSocketEvent<FeedActivity>(FEED_ACTIVITY_CREATED_EVENT, (activity) => {
+    const feedQueries = queryClient.getQueryCache().findAll({
+      predicate: (query) =>
+        query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
+    });
 
-    const handleActivityCreated = (activity: FeedActivity) => {
-      const feedQueries = queryClient.getQueryCache().findAll({
-        predicate: (query) =>
-          query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
-      });
+    for (const query of feedQueries) {
+      const filters = query.queryKey[1] as FeedFilters | undefined;
 
-      for (const query of feedQueries) {
-        const filters = query.queryKey[1] as FeedFilters | undefined;
-
-        if (!filters || !matchesFilters(activity, filters)) {
-          continue;
-        }
-
-        queryClient.setQueryData<InfiniteData<FeedPage>>(
-          query.queryKey,
-          (data) => {
-            if (
-              !data ||
-              data.pages.some((page) =>
-                page.items.some((item) => item.id === activity.id),
-              )
-            ) {
-              return data;
-            }
-
-            return {
-              ...data,
-              pages: data.pages.map((page, index) =>
-                index === 0
-                  ? { ...page, items: [activity, ...page.items] }
-                  : page,
-              ),
-            };
-          },
-        );
+      if (!filters || !matchesFilters(activity, filters)) {
+        continue;
       }
 
-      queryClient.setQueryData<UnreadActivitiesCount>(
-        ["unread-activities-count"],
-        (data) => (data ? { count: data.count + 1 } : data),
+      queryClient.setQueryData<InfiniteData<FeedPage>>(
+        query.queryKey,
+        (data) => {
+          if (
+            !data ||
+            data.pages.some((page) =>
+              page.items.some((item) => item.id === activity.id),
+            )
+          ) {
+            return data;
+          }
+
+          return {
+            ...data,
+            pages: data.pages.map((page, index) =>
+              index === 0 ? { ...page, items: [activity, ...page.items] } : page,
+            ),
+          };
+        },
       );
-    };
+    }
 
-    socket.on(FEED_ACTIVITY_CREATED_EVENT, handleActivityCreated);
-    socket.io.on("reconnect", refetchActiveFeedQueries);
+    queryClient.setQueryData<UnreadActivitiesCount>(
+      ["unread-activities-count"],
+      (data) => (data ? { count: data.count + 1 } : data),
+    );
+  });
 
-    return () => {
-      socket.off(FEED_ACTIVITY_CREATED_EVENT, handleActivityCreated);
-      socket.io.off("reconnect", refetchActiveFeedQueries);
-    };
-  }, [queryClient]);
+  useSocketManagerEvent("reconnect", () => {
+    void queryClient.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
+      refetchType: "active",
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ["unread-activities-count"],
+      refetchType: "active",
+    });
+  });
 }
