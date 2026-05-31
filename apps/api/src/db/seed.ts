@@ -3,9 +3,9 @@ import {
   activities,
   activityComments,
   activityReactions,
-  activityReads,
   type ActivityMetadata,
   ActivityType,
+  userActivities,
   users,
 } from "./schema";
 import { buildActivitySearchText } from "../modules/feed/activity-generator";
@@ -16,7 +16,7 @@ const MAX_COMMENTS_PER_ACTIVITY = 3;
 const ACTIVITY_BATCH_SIZE = 250;
 const COMMENT_BATCH_SIZE = 500;
 const ACTIVITY_REACTION_BATCH_SIZE = 500;
-const ACTIVITY_READ_BATCH_SIZE = 500;
+const USER_ACTIVITY_BATCH_SIZE = 500;
 
 const characterNames = [
   "Walter White",
@@ -178,13 +178,16 @@ async function seed() {
     throw new Error("At least one seeded user is required");
   }
 
-  const activityReadValues = seededActivities.map((activity) => ({
-    activityId: activity.id,
-    userId: firstUser.id,
-  }));
+  const userActivityValues = seededActivities.flatMap((activity) =>
+    seededUsers.map((user) => ({
+      activityId: activity.id,
+      userId: user.id,
+      isRead: user.id === firstUser.id,
+    })),
+  );
 
-  for (const batch of chunk(activityReadValues, ACTIVITY_READ_BATCH_SIZE)) {
-    await db.insert(activityReads).values(batch).onConflictDoNothing();
+  for (const batch of chunk(userActivityValues, USER_ACTIVITY_BATCH_SIZE)) {
+    await db.insert(userActivities).values(batch).onConflictDoNothing();
   }
 
   const activityReactionValues = seededActivities.flatMap((activity) => {
@@ -222,7 +225,7 @@ async function seed() {
   }
 
   console.log(
-    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, ${activityReadValues.length} read states, ${activityReactionValues.length} reactions, and ${commentValues.length} comments.`,
+    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, ${userActivityValues.length} user activities, ${activityReactionValues.length} reactions, and ${commentValues.length} comments.`,
   );
 }
 

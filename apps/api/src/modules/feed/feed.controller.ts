@@ -17,8 +17,10 @@ export class FeedController {
   constructor(private readonly feedService: FeedService) {}
 
   @Get("filters")
-  getFeedFilters(): Promise<FeedFilterOptionsDto> {
-    return this.feedService.getFeedFilters();
+  getFeedFilters(
+    @UserId(new ParseUUIDPipe()) userId: string,
+  ): Promise<FeedFilterOptionsDto> {
+    return this.feedService.getFeedFilters(userId);
   }
 
   @Get()

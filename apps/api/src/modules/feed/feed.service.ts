@@ -57,8 +57,8 @@ export class FeedService {
     };
   }
 
-  async getFeedFilters(): Promise<FeedFilterOptionsDto> {
-    const actors = await this.feedRepository.getFeedActors();
+  async getFeedFilters(userId: string): Promise<FeedFilterOptionsDto> {
+    const actors = await this.feedRepository.getFeedActors(userId);
 
     return { actors };
   }
@@ -73,6 +73,7 @@ export class FeedService {
     const actor = randomItem(actors);
     const activity = await this.feedRepository.createFeedActivity(
       buildRandomActivity(actor),
+      actors.map(({ id }) => id),
     );
     const finalActivity = {
       ...activity,

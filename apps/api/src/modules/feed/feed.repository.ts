@@ -1,23 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  gte,
-  isNull,
-  lt,
-  or,
-  sql,
-  type SQL,
-} from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../db/db";
 import {
   activities,
   activityComments,
   activityReactions,
-  activityReads,
   type ActivityType,
+  userActivities,
   users,
 } from "../../db/schema";
 
@@ -98,7 +87,7 @@ export class FeedRepository {
       whereConditions.push(
         sql`(
           ${activities.searchText} ilike ${`%${filters.query}%`}
-          or word_similarity(${filters.query}, ${activities.searchText}) > 0.5
+          or word_similarity(${filters.query}, ${activities.searchText}) > 0.3
         )`,
       );
     }
@@ -116,7 +105,7 @@ export class FeedRepository {
         id: activities.id,
         type: activities.type,
         metadata: activities.metadata,
-        isRead: sql<boolean>`${activityReads.activityId} is not null`,
+        isRead: userActivities.isRead,
         commentsCount: getCommentsCount(),
         reactions: getReactionSummaries(userId),
         createdAt: activities.createdAt,
@@ -128,11 +117,11 @@ export class FeedRepository {
       })
       .from(activities)
       .innerJoin(users, eq(activities.actorId, users.id))
-      .leftJoin(
-        activityReads,
+      .innerJoin(
+        userActivities,
         and(
-          eq(activityReads.activityId, activities.id),
-          eq(activityReads.userId, userId),
+          eq(userActivities.activityId, activities.id),
+          eq(userActivities.userId, userId),
         ),
       )
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
@@ -140,7 +129,7 @@ export class FeedRepository {
       .limit(limit);
   }
 
-  getFeedActors() {
+  getFeedActors(userId: string) {
     return db
       .select({
         id: users.id,
@@ -149,6 +138,13 @@ export class FeedRepository {
       })
       .from(users)
       .innerJoin(activities, eq(activities.actorId, users.id))
+      .innerJoin(
+        userActivities,
+        and(
+          eq(userActivities.activityId, activities.id),
+          eq(userActivities.userId, userId),
+        ),
+      )
       .groupBy(users.id, users.name, users.email)
       .orderBy(asc(users.name), asc(users.email));
   }
@@ -164,91 +160,61 @@ export class FeedRepository {
       .orderBy(asc(users.name), asc(users.email));
   }
 
-  async createFeedActivity(activity: typeof activities.$inferInsert) {
-    const [createdActivity] = await db
-      .insert(activities)
-      .values(activity)
-      .returning({
-        id: activities.id,
-        type: activities.type,
-        metadata: activities.metadata,
-        createdAt: activities.createdAt,
-      });
+  async createFeedActivity(
+    activity: typeof activities.$inferInsert,
+    userIds: string[],
+  ) {
+    const createdActivity = await db.transaction(async (tx) => {
+      const [createdActivity] = await tx
+        .insert(activities)
+        .values(activity)
+        .returning({
+          id: activities.id,
+          type: activities.type,
+          metadata: activities.metadata,
+          createdAt: activities.createdAt,
+        });
+
+      await tx.insert(userActivities).values(
+        userIds.map((userId) => ({
+          activityId: createdActivity.id,
+          userId,
+        })),
+      );
+
+      return createdActivity;
+    });
 
     return createdActivity;
   }
 
   async markActivityRead(activityId: string, userId: string) {
-    const [activity] = await db
-      .select({
-        id: activities.id,
-      })
-      .from(activities)
-      .where(eq(activities.id, activityId))
-      .limit(1);
-
-    if (!activity) {
-      return undefined;
-    }
-
     await db
-      .insert(activityReads)
-      .values({
-        activityId,
-        userId,
-      })
-      .onConflictDoNothing();
+      .update(userActivities)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(userActivities.activityId, activityId),
+          eq(userActivities.userId, userId),
+        ),
+      );
   }
 
   async markAllActivitiesRead(userId: string) {
-    const unreadActivities = await db
-      .select({
-        activityId: activities.id,
-      })
-      .from(activities)
-      .leftJoin(
-        activityReads,
-        and(
-          eq(activityReads.activityId, activities.id),
-          eq(activityReads.userId, userId),
-        ),
-      )
-      .where(isNull(activityReads.activityId));
-
-    if (unreadActivities.length === 0) {
-      return;
-    }
-
     await db
-      .insert(activityReads)
-      .values(
-        unreadActivities.map(({ activityId }) => ({
-          activityId,
-          userId,
-        })),
-      )
-      .onConflictDoNothing();
+      .update(userActivities)
+      .set({ isRead: true })
+      .where(eq(userActivities.userId, userId));
   }
 
   async markActivityUnread(activityId: string, userId: string) {
-    const [activity] = await db
-      .select({
-        id: activities.id,
-      })
-      .from(activities)
-      .where(eq(activities.id, activityId))
-      .limit(1);
-
-    if (!activity) {
-      return undefined;
-    }
-
     await db
-      .delete(activityReads)
+      .update(userActivities)
+      .set({ isRead: false })
       .where(
         and(
-          eq(activityReads.activityId, activityId),
-          eq(activityReads.userId, userId),
+          eq(userActivities.activityId, activityId),
+          eq(userActivities.userId, userId),
         ),
       );
   }

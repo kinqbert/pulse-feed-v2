@@ -1,4 +1,5 @@
 import { pgEnum } from "drizzle-orm/pg-core";
+import { boolean } from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
 import { index } from "drizzle-orm/pg-core";
 import { primaryKey } from "drizzle-orm/pg-core";
@@ -89,8 +90,8 @@ export const activities = pgTable(
   ],
 );
 
-export const activityReads = pgTable(
-  "activity_reads",
+export const userActivities = pgTable(
+  "user_activities",
   {
     activityId: uuid("activity_id")
       .notNull()
@@ -98,8 +99,15 @@ export const activityReads = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
+    isRead: boolean("is_read").notNull().default(false),
   },
-  (table) => [primaryKey({ columns: [table.activityId, table.userId] })],
+  (table) => [
+    primaryKey({ columns: [table.activityId, table.userId] }),
+    index("user_activities_user_id_activity_id_idx").on(
+      table.userId,
+      table.activityId,
+    ),
+  ],
 );
 
 export const activityComments = pgTable(
