@@ -5,6 +5,7 @@ import {
   type ActivityType,
   type FeedActivity,
   useMarkActivityReadMutation,
+  useMarkActivityUnreadMutation,
 } from "../api/feed";
 import { ActivityComments } from "./ActivityComments";
 import { ActivityReactions } from "./ActivityReactions";
@@ -111,7 +112,10 @@ export const FeedItem = ({
   const [showComments, setShowComments] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const markActivityReadMutation = useMarkActivityReadMutation();
+  const markActivityUnreadMutation = useMarkActivityUnreadMutation();
   const ActivityContent = activityContentByType[activity.type];
+  const isUpdatingReadState =
+    markActivityReadMutation.isPending || markActivityUnreadMutation.isPending;
 
   return (
     <Box
@@ -201,16 +205,18 @@ export const FeedItem = ({
               flexWrap: "wrap",
             }}
           >
-            {!activity.isRead ? (
-              <button
-                type="button"
-                disabled={markActivityReadMutation.isPending}
-                onClick={() => markActivityReadMutation.mutate(activity.id)}
-                style={timelineActionStyles}
-              >
-                Mark as read
-              </button>
-            ) : null}
+            <button
+              type="button"
+              disabled={isUpdatingReadState}
+              onClick={() =>
+                activity.isRead
+                  ? markActivityUnreadMutation.mutate(activity.id)
+                  : markActivityReadMutation.mutate(activity.id)
+              }
+              style={timelineActionStyles}
+            >
+              {activity.isRead ? "Mark as unread" : "Mark as read"}
+            </button>
             <button
               type="button"
               onClick={() => setShowComments((current) => !current)}

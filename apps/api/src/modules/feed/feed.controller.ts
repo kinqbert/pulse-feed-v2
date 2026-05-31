@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -35,5 +36,13 @@ export class FeedController {
     @Param("activityId", new ParseUUIDPipe()) activityId: string,
   ) {
     return this.feedService.markActivityRead(activityId, userId);
+  }
+
+  @Delete(":activityId/read")
+  markActivityUnread(
+    @UserId(new ParseUUIDPipe()) userId: string,
+    @Param("activityId", new ParseUUIDPipe()) activityId: string,
+  ) {
+    return this.feedService.markActivityUnread(activityId, userId);
   }
 }

@@ -187,10 +187,28 @@ export class FeedRepository {
         userId,
       })
       .onConflictDoNothing();
+  }
 
-    return {
-      ...activity,
-      isRead: true,
-    };
+  async markActivityUnread(activityId: string, userId: string) {
+    const [activity] = await db
+      .select({
+        id: activities.id,
+      })
+      .from(activities)
+      .where(eq(activities.id, activityId))
+      .limit(1);
+
+    if (!activity) {
+      return undefined;
+    }
+
+    await db
+      .delete(activityReads)
+      .where(
+        and(
+          eq(activityReads.activityId, activityId),
+          eq(activityReads.userId, userId),
+        ),
+      );
   }
 }
