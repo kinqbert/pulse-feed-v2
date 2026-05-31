@@ -37,11 +37,13 @@ function getFeedFiltersFromSearchParams(): FeedFilters {
   const type = params.get("type");
   const actorId = params.get("actorId");
   const from = params.get("from");
+  const query = params.get("query");
   const to = params.get("to");
 
   return {
     actorId: actorId || defaultFeedFilters.actorId,
     from: from && isDateInputValue(from) ? from : defaultFeedFilters.from,
+    query: query || defaultFeedFilters.query,
     to: to && isDateInputValue(to) ? to : defaultFeedFilters.to,
     type: type && isActivityType(type) ? type : defaultFeedFilters.type,
   };
@@ -52,6 +54,7 @@ function writeFeedFiltersToSearchParams(filters: FeedFilters) {
 
   setFilterSearchParam(url.searchParams, "actorId", filters.actorId);
   setFilterSearchParam(url.searchParams, "from", filters.from);
+  setFilterSearchParam(url.searchParams, "query", filters.query);
   setFilterSearchParam(url.searchParams, "to", filters.to);
   setFilterSearchParam(url.searchParams, "type", filters.type);
 
@@ -100,12 +103,18 @@ export function useFeedFiltersSearchParams() {
     writeFeedFiltersToSearchParams(defaultFeedFilters);
   }, []);
 
+  const setQuery = useCallback(
+    (query: string) => updateFilters({ ...filters, query }),
+    [filters, updateFilters],
+  );
+
   return {
     filters,
     resetFilters,
     setActorId: (actorId: string) => updateFilters({ ...filters, actorId }),
     setDateRange: (from: string, to: string) =>
       updateFilters({ ...filters, from, to }),
+    setQuery,
     setType: (type: ActivityType | "all") =>
       updateFilters({ ...filters, type }),
   };

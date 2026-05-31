@@ -11,6 +11,7 @@ import {
   IsString,
   IsUUID,
   Max,
+  MaxLength,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -27,6 +28,11 @@ export class GetFeedQueryDto {
   @Max(1000)
   @IsOptional()
   declare limit?: number;
+
+  @IsString()
+  @MaxLength(200)
+  @IsOptional()
+  declare query?: string;
 
   @IsDateString()
   @IsOptional()

@@ -24,6 +24,7 @@ export class FeedService {
       actorId,
       from,
       limit = DEFAULT_FEED_LIMIT,
+      query,
       to,
       type,
     }: GetFeedQueryDto,
@@ -33,6 +34,7 @@ export class FeedService {
     const filters = {
       actorId,
       from: from ? new Date(from) : undefined,
+      query: query?.trim().toLowerCase().replace(/\s+/g, " ") || undefined,
       to: to ? new Date(to) : undefined,
       type,
     };

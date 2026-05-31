@@ -19,6 +19,24 @@ function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
     return false;
   }
 
+  const searchText = [
+    activity.type,
+    activity.actor.name,
+    activity.actor.email,
+    ...Object.values(activity.metadata),
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const query = filters.query.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (query && !searchText.includes(query)) {
+    return false;
+  }
+
   const createdAt = new Date(activity.createdAt);
 
   if (filters.from && createdAt < getStartOfDay(filters.from)) {

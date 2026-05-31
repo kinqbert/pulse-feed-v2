@@ -52,6 +52,7 @@ export class FeedRepository {
     filters?: {
       actorId?: string;
       from?: Date;
+      query?: string;
       to?: Date;
       type?: ActivityType;
     };
@@ -80,6 +81,12 @@ export class FeedRepository {
 
     if (filters?.from) {
       whereConditions.push(gte(activities.createdAt, filters.from));
+    }
+
+    if (filters?.query) {
+      whereConditions.push(
+        sql`${activities.searchText} ilike ${`%${filters.query}%`}`,
+      );
     }
 
     if (filters?.to) {

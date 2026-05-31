@@ -101,7 +101,11 @@ export const Feed = () => {
 
           {shouldShowEmptyState ? (
             <Card size="3">
-              <Text color="gray">No feed activity yet.</Text>
+              <Text color="gray">
+                {filters.query
+                  ? "No activities match your search."
+                  : "No feed activity yet."}
+              </Text>
             </Card>
           ) : null}
 
@@ -147,7 +151,7 @@ export const Feed = () => {
           ) : null}
 
           <Flex align="center" justify="center">
-            {hasNextPage ? (
+            {hasNextPage && (
               <Button
                 type="button"
                 variant="surface"
@@ -156,8 +160,6 @@ export const Feed = () => {
               >
                 {isFetchingNextPage ? "Loading..." : "Load more activities"}
               </Button>
-            ) : (
-              <Text color="gray">You've scrolled to the end! Congrats!</Text>
             )}
           </Flex>
         </Flex>

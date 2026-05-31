@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { Box, Button, Flex, Select, Text } from "@radix-ui/themes";
 import {
   defaultFeedFilters,
@@ -38,6 +38,11 @@ const dateInputStyle = {
   fontSize: "14px",
 };
 
+const searchInputStyle = {
+  ...dateInputStyle,
+  width: "100%",
+};
+
 const presetButtonStyle = {
   padding: 0,
   border: 0,
@@ -67,6 +72,41 @@ const PresetButton = ({
   </button>
 );
 
+const DebouncedSearchInput = ({
+  initialQuery,
+  setQuery,
+}: {
+  initialQuery: string;
+  setQuery: (query: string) => void;
+}) => {
+  const [query, setDraftQuery] = useState(initialQuery);
+
+  useEffect(() => {
+    const normalizedQuery = query.trim().replace(/\s+/g, " ");
+    const timeout = window.setTimeout(() => {
+      if (normalizedQuery !== initialQuery) {
+        setQuery(normalizedQuery);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [initialQuery, query, setQuery]);
+
+  return (
+    <input
+      aria-label="Search activities"
+      maxLength={200}
+      placeholder="Search activities"
+      type="search"
+      value={query}
+      onChange={(event) => setDraftQuery(event.target.value)}
+      style={searchInputStyle}
+    />
+  );
+};
+
 function formatDateInputValue(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -86,15 +126,22 @@ function getStartOfWeek(date: Date) {
 
 export const FeedFilters = () => {
   const filterOptionsQuery = useFeedFilterOptionsQuery();
-  const { filters, resetFilters, setActorId, setDateRange, setType } =
+  const { filters, resetFilters, setActorId, setDateRange, setQuery, setType } =
     useFeedFiltersSearchParams();
+  const [searchResetVersion, setSearchResetVersion] = useState(0);
   const hasActiveFilters =
     filters.actorId !== defaultFeedFilters.actorId ||
     filters.from !== defaultFeedFilters.from ||
+    filters.query !== defaultFeedFilters.query ||
     filters.to !== defaultFeedFilters.to ||
     filters.type !== defaultFeedFilters.type;
+
   const applyDateRange = (from: Date, to: Date) => {
     setDateRange(formatDateInputValue(from), formatDateInputValue(to));
+  };
+  const handleResetFilters = () => {
+    setSearchResetVersion((current) => current + 1);
+    resetFilters();
   };
   const applyToday = () => {
     const today = new Date();
@@ -129,6 +176,17 @@ export const FeedFilters = () => {
 
   return (
     <Flex direction="column" gap="3" mt="4" width="100%">
+      <Box>
+        <Text as="p" size="1" color="gray" mb="1">
+          Search
+        </Text>
+        <DebouncedSearchInput
+          key={`${filters.query}-${searchResetVersion}`}
+          initialQuery={filters.query}
+          setQuery={setQuery}
+        />
+      </Box>
+
       <Flex align="end" gap="3" wrap="wrap">
         <Box style={filterControlStyle}>
           <Text as="p" size="1" color="gray" mb="1">
@@ -214,7 +272,7 @@ export const FeedFilters = () => {
             size="1"
             variant="soft"
             disabled={!hasActiveFilters}
-            onClick={resetFilters}
+            onClick={handleResetFilters}
             style={{ marginLeft: "auto" }}
           >
             Reset filters

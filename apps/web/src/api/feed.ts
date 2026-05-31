@@ -104,6 +104,7 @@ export type FeedPage = {
 export type FeedFilters = {
   actorId: string;
   from: string;
+  query: string;
   to: string;
   type: ActivityType | "all";
 };
@@ -111,6 +112,7 @@ export type FeedFilters = {
 export const defaultFeedFilters: FeedFilters = {
   actorId: "all",
   from: "",
+  query: "",
   to: "",
   type: "all",
 };
@@ -128,6 +130,7 @@ async function fetchFeedPage({
   cursor,
   from,
   limit = 30,
+  query,
   to,
   type,
 }: {
@@ -135,6 +138,7 @@ async function fetchFeedPage({
   cursor?: string;
   from?: string;
   limit?: number;
+  query?: string;
   to?: string;
   type?: ActivityType;
 }): Promise<FeedPage> {
@@ -144,6 +148,7 @@ async function fetchFeedPage({
       cursor,
       from,
       limit,
+      query,
       to,
       type,
     },
@@ -162,6 +167,7 @@ export function useFeedInfiniteQuery(filters: FeedFilters) {
         from: filters.from
           ? getStartOfDay(filters.from).toISOString()
           : undefined,
+        query: filters.query || undefined,
         to: filters.to
           ? getStartOfNextDay(filters.to).toISOString()
           : undefined,
