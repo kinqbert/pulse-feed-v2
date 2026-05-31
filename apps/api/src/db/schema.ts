@@ -1,5 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
+import { index } from "drizzle-orm/pg-core";
 import { primaryKey } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { pgTable, text, uuid } from "drizzle-orm/pg-core";
@@ -52,18 +53,41 @@ export const ActivityTypeEnum = pgEnum(
   enumToPgEnum(ActivityType),
 );
 
-export const activities = pgTable("activities", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  type: ActivityTypeEnum().notNull(),
-  actorId: uuid("actor_id")
-    .notNull()
-    .references(() => users.id),
-  metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
-  searchText: text("search_text").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const activities = pgTable(
+  "activities",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    type: ActivityTypeEnum().notNull(),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id),
+    metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
+    searchText: text("search_text").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("activities_created_at_id_idx").on(
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+    index("activities_actor_id_created_at_id_idx").on(
+      table.actorId,
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+    index("activities_type_created_at_id_idx").on(
+      table.type,
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+    index("activities_search_text_trgm_idx").using(
+      "gin",
+      table.searchText.op("gin_trgm_ops"),
+    ),
+  ],
+);
 
 export const activityReads = pgTable(
   "activity_reads",
@@ -78,19 +102,23 @@ export const activityReads = pgTable(
   (table) => [primaryKey({ columns: [table.activityId, table.userId] })],
 );
 
-export const activityComments = pgTable("activity_comments", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  activityId: uuid("activity_id")
-    .notNull()
-    .references(() => activities.id),
-  actorId: uuid("actor_id")
-    .notNull()
-    .references(() => users.id),
-  content: text("text").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const activityComments = pgTable(
+  "activity_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    activityId: uuid("activity_id")
+      .notNull()
+      .references(() => activities.id),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => users.id),
+    content: text("text").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("activity_comments_activity_id_idx").on(table.activityId)],
+);
 
 export const activityReactions = pgTable(
   "activity_reactions",
