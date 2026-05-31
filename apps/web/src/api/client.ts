@@ -5,6 +5,7 @@ const apiBaseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
 
 export const api = axios.create({
   baseURL: apiBaseUrl || undefined,
+  timeout: 20_000,
 });
 
 api.interceptors.request.use((config) => {

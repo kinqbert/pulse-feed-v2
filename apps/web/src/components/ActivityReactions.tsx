@@ -1,4 +1,4 @@
-import { Box, Popover, Text } from "@radix-ui/themes";
+import { Box, Button, Flex, Popover, Text } from "@radix-ui/themes";
 import {
   type ActivityReaction,
   useToggleActivityReactionMutation,
@@ -120,9 +120,24 @@ export const ActivityReactions = ({
         ))}
       </Box>
       {toggleReactionMutation.isError ? (
-        <Text as="p" size="1" color="red" mt="2">
-          Could not save reaction. Try again.
-        </Text>
+        <Flex align="center" gap="2" mt="2">
+          <Text as="p" size="1" color="red">
+            Could not save reaction.
+          </Text>
+          {toggleReactionMutation.variables ? (
+            <Button
+              type="button"
+              size="1"
+              variant="ghost"
+              disabled={toggleReactionMutation.isPending}
+              onClick={() =>
+                toggleReactionMutation.mutate(toggleReactionMutation.variables)
+              }
+            >
+              {toggleReactionMutation.isPending ? "Retrying..." : "Retry"}
+            </Button>
+          ) : null}
+        </Flex>
       ) : null}
     </>
   );

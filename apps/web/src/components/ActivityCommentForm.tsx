@@ -41,9 +41,7 @@ export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
     event.currentTarget.form?.requestSubmit();
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const postComment = () => {
     if (!userId || !trimmedContent || createCommentMutation.isPending) {
       return;
     }
@@ -66,6 +64,11 @@ export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
         },
       },
     );
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    postComment();
   };
 
   return (
@@ -102,9 +105,20 @@ export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
           </Button>
         </Flex>
         {createCommentMutation.isError ? (
-          <Text size="2" color="red">
-            Could not post comment.
-          </Text>
+          <Flex align="center" gap="2">
+            <Text size="2" color="red">
+              Could not post comment.
+            </Text>
+            <Button
+              type="button"
+              size="1"
+              variant="ghost"
+              disabled={createCommentMutation.isPending}
+              onClick={postComment}
+            >
+              {createCommentMutation.isPending ? "Retrying..." : "Retry"}
+            </Button>
+          </Flex>
         ) : null}
         {!userId ? (
           <Text size="2" color="gray">

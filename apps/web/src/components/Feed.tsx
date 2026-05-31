@@ -86,6 +86,19 @@ export const Feed = () => {
                     {unreadActivitiesCountQuery.data.count} unread
                   </Text>
                 ) : null}
+                {unreadActivitiesCountQuery.isError ? (
+                  <Button
+                    type="button"
+                    size="1"
+                    variant="ghost"
+                    disabled={unreadActivitiesCountQuery.isFetching}
+                    onClick={() => void unreadActivitiesCountQuery.refetch()}
+                  >
+                    {unreadActivitiesCountQuery.isFetching
+                      ? "Retrying unread count..."
+                      : "Retry unread count"}
+                  </Button>
+                ) : null}
               </Flex>
               <Text as="p" color="gray">
                 Latest activity across comments, mentions, tasks, and deploys.
@@ -101,11 +114,22 @@ export const Feed = () => {
             </Flex>
           ) : null}
 
-          {feedQuery.isError ? (
+          {feedQuery.isError && !feedQuery.isFetchNextPageError ? (
             <Callout.Root color="red" role="alert">
-              <Callout.Text>
-                Could not load the feed. Check that the API is running.
-              </Callout.Text>
+              <Flex align="center" justify="between" gap="3" wrap="wrap">
+                <Callout.Text>
+                  Could not load the feed. Check that the API is running.
+                </Callout.Text>
+                <Button
+                  type="button"
+                  size="1"
+                  variant="soft"
+                  disabled={feedQuery.isFetching}
+                  onClick={() => void feedQuery.refetch()}
+                >
+                  {feedQuery.isFetching ? "Retrying..." : "Retry"}
+                </Button>
+              </Flex>
             </Callout.Root>
           ) : null}
 
@@ -114,7 +138,12 @@ export const Feed = () => {
               <Text color="gray">
                 {filters.query
                   ? "No activities match your search."
-                  : "No feed activity yet."}
+                  : filters.actorId !== "all" ||
+                      filters.from ||
+                      filters.to ||
+                      filters.type !== "all"
+                    ? "No activities match your filters."
+                    : "No feed activity yet."}
               </Text>
             </Card>
           ) : null}
@@ -172,6 +201,22 @@ export const Feed = () => {
               </Button>
             )}
           </Flex>
+          {feedQuery.isFetchNextPageError ? (
+            <Flex align="center" justify="center" gap="2" mt="2">
+              <Text size="2" color="red">
+                Could not load more activities.
+              </Text>
+              <Button
+                type="button"
+                size="1"
+                variant="soft"
+                disabled={isFetchingNextPage}
+                onClick={() => void fetchNextPage()}
+              >
+                {isFetchingNextPage ? "Retrying..." : "Retry"}
+              </Button>
+            </Flex>
+          ) : null}
         </Flex>
       </Container>
     </Section>

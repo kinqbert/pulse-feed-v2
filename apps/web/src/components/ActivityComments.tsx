@@ -1,4 +1,4 @@
-import { Avatar, Box, Flex, Separator, Text } from "@radix-ui/themes";
+import { Avatar, Box, Button, Flex, Separator, Text } from "@radix-ui/themes";
 import { useActivityCommentsQuery } from "../api/feed";
 import { formatRelativeDate } from "../utils/formatRelativeDate";
 import { getInitials } from "../utils/getInitials";
@@ -9,6 +9,8 @@ export const ActivityComments = ({ activityId }: { activityId: string }) => {
     data: comments,
     isLoading,
     isError,
+    isFetching,
+    refetch,
   } = useActivityCommentsQuery(activityId);
   const shouldDisplayEmptyState =
     !isLoading && !isError && comments?.length === 0;
@@ -34,9 +36,20 @@ export const ActivityComments = ({ activityId }: { activityId: string }) => {
         ) : null}
 
         {isError ? (
-          <Text size="2" color="red">
-            Could not load comments.
-          </Text>
+          <Flex align="center" gap="2">
+            <Text size="2" color="red">
+              Could not load comments.
+            </Text>
+            <Button
+              type="button"
+              size="1"
+              variant="ghost"
+              disabled={isFetching}
+              onClick={() => void refetch()}
+            >
+              {isFetching ? "Retrying..." : "Retry"}
+            </Button>
+          </Flex>
         ) : null}
 
         {shouldDisplayEmptyState ? (

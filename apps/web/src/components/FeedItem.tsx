@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, Box, Flex, Text } from "@radix-ui/themes";
+import { Avatar, Box, Button, Flex, Text } from "@radix-ui/themes";
 import { formatRelativeDate } from "../utils/formatRelativeDate";
 import { getInitials } from "../utils/getInitials";
 import {
@@ -116,6 +116,11 @@ export const FeedItem = ({
   const ActivityContent = activityContentByType[activity.type];
   const isUpdatingReadState =
     markActivityReadMutation.isPending || markActivityUnreadMutation.isPending;
+  const failedReadStateMutation = markActivityReadMutation.isError
+    ? markActivityReadMutation
+    : markActivityUnreadMutation.isError
+      ? markActivityUnreadMutation
+      : null;
 
   return (
     <Box
@@ -235,6 +240,22 @@ export const FeedItem = ({
                     : `Show comments (${activity.commentsCount})`}
                 </button>
               </Box>
+              {failedReadStateMutation ? (
+                <Flex align="center" gap="2" mt="2">
+                  <Text size="1" color="red">
+                    Could not update read state.
+                  </Text>
+                  <Button
+                    type="button"
+                    size="1"
+                    variant="ghost"
+                    disabled={isUpdatingReadState}
+                    onClick={() => failedReadStateMutation.mutate(activity.id)}
+                  >
+                    {isUpdatingReadState ? "Retrying..." : "Retry"}
+                  </Button>
+                </Flex>
+              ) : null}
               <ActivityReactions
                 activityId={activity.id}
                 reactions={activity.reactions}

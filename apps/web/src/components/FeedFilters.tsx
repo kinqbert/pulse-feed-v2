@@ -2,12 +2,12 @@ import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { Box, Button, Flex, Select, Text } from "@radix-ui/themes";
 import {
   defaultFeedFilters,
-  getActivityLabel,
   useMarkAllActivitiesReadMutation,
   useFeedFilterOptionsQuery,
   type ActivityType,
 } from "../api/feed";
 import { useFeedFiltersSearchParams } from "../hooks/useFeedFiltersSearchParams";
+import { getActivityLabel } from "../utils/getActivityLabel";
 
 const typeOptions: Array<{ label: string; value: ActivityType | "all" }> = [
   { label: "All types", value: "all" },
@@ -231,6 +231,22 @@ export const FeedFilters = () => {
           </Select.Root>
         </Box>
       </Flex>
+      {filterOptionsQuery.isError ? (
+        <Flex align="center" gap="2">
+          <Text size="1" color="red">
+            Could not load actor filters.
+          </Text>
+          <Button
+            type="button"
+            size="1"
+            variant="ghost"
+            disabled={filterOptionsQuery.isFetching}
+            onClick={() => void filterOptionsQuery.refetch()}
+          >
+            {filterOptionsQuery.isFetching ? "Retrying..." : "Retry"}
+          </Button>
+        </Flex>
+      ) : null}
 
       <Box>
         <Flex align="end" gap="3" wrap="wrap">
@@ -294,6 +310,24 @@ export const FeedFilters = () => {
             Mark all as read
           </Button>
         </Flex>
+        {markAllActivitiesReadMutation.isError ? (
+          <Flex align="center" gap="2" mt="2">
+            <Text size="1" color="red">
+              Could not mark all activities as read.
+            </Text>
+            <Button
+              type="button"
+              size="1"
+              variant="ghost"
+              disabled={markAllActivitiesReadMutation.isPending}
+              onClick={() => markAllActivitiesReadMutation.mutate()}
+            >
+              {markAllActivitiesReadMutation.isPending
+                ? "Retrying..."
+                : "Retry"}
+            </Button>
+          </Flex>
+        ) : null}
       </Box>
     </Flex>
   );
