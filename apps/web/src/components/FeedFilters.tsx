@@ -279,19 +279,19 @@ export const FeedFilters = () => {
             size="1"
             variant="soft"
             style={{ marginLeft: "auto" }}
-            disabled={markAllActivitiesReadMutation.isPending}
-            onClick={() => markAllActivitiesReadMutation.mutate()}
-          >
-            Mark all as read
-          </Button>
-          <Button
-            type="button"
-            size="1"
-            variant="soft"
             disabled={!hasActiveFilters}
             onClick={handleResetFilters}
           >
             Reset filters
+          </Button>{" "}
+          <Button
+            type="button"
+            size="1"
+            variant="soft"
+            disabled={markAllActivitiesReadMutation.isPending}
+            onClick={() => markAllActivitiesReadMutation.mutate()}
+          >
+            Mark all as read
           </Button>
         </Flex>
       </Box>

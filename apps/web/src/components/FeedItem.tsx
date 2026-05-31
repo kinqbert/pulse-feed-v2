@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Box, Text } from "@radix-ui/themes";
+import { Avatar, Box, Flex, Text } from "@radix-ui/themes";
 import { formatRelativeDate } from "../utils/formatRelativeDate";
+import { getInitials } from "../utils/getInitials";
 import {
   type ActivityType,
   type FeedActivity,
@@ -159,87 +160,99 @@ export const FeedItem = ({
             ...transitionStyles,
           }}
         >
-          <Box
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "12px",
-              marginBottom: "5px",
-            }}
-          >
-            <Text
-              as="p"
+          <Flex align="start" gap="2">
+            <Avatar
               size="2"
+              radius="full"
+              fallback={getInitials(activity.actor.name)}
               color="gray"
-              style={{
-                margin: 0,
-                lineHeight: 1.2,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {formatRelativeDate(activity.createdAt)}
-            </Text>
-            {!activity.isRead ? (
-              <Text
-                as="span"
-                size="1"
+            />
+            <Box flexGrow="1" minWidth="0">
+              <Box
                 style={{
-                  color: "var(--teal-11)",
-                  fontWeight: 600,
-                  lineHeight: 1,
-                  ...transitionStyles,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  marginBottom: "5px",
                 }}
               >
-                New
-              </Text>
-            ) : null}
-          </Box>
-          <ActivityContent activity={activity} />
-          <Box
-            style={{
-              display: "flex",
-              gap: "14px",
-              marginTop: "8px",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              type="button"
-              disabled={isUpdatingReadState}
-              onClick={() =>
-                activity.isRead
-                  ? markActivityUnreadMutation.mutate(activity.id)
-                  : markActivityReadMutation.mutate(activity.id)
-              }
-              style={timelineActionStyles}
-            >
-              {activity.isRead ? "Mark as unread" : "Mark as read"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowComments((current) => !current)}
-              style={timelineActionStyles}
-            >
-              {showComments
-                ? "Hide comments"
-                : `Show comments (${activity.commentsCount})`}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowReactionPicker((current) => !current)}
-              style={timelineActionStyles}
-            >
-              {showReactionPicker ? "Hide reactions" : "Show reactions"}
-            </button>
-          </Box>
-          <ActivityReactions
-            activityId={activity.id}
-            reactions={activity.reactions}
-            showReactionPicker={showReactionPicker}
-          />
-          {showComments ? <ActivityComments activityId={activity.id} /> : null}
+                <Text
+                  as="p"
+                  size="2"
+                  color="gray"
+                  style={{
+                    margin: 0,
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {formatRelativeDate(activity.createdAt)}
+                </Text>
+                {!activity.isRead ? (
+                  <Text
+                    as="span"
+                    size="1"
+                    style={{
+                      color: "var(--teal-11)",
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      ...transitionStyles,
+                    }}
+                  >
+                    New
+                  </Text>
+                ) : null}
+              </Box>
+              <ActivityContent activity={activity} />
+              <Box
+                style={{
+                  display: "flex",
+                  gap: "14px",
+                  marginTop: "8px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={isUpdatingReadState}
+                  onClick={() =>
+                    activity.isRead
+                      ? markActivityUnreadMutation.mutate(activity.id)
+                      : markActivityReadMutation.mutate(activity.id)
+                  }
+                  style={timelineActionStyles}
+                >
+                  {activity.isRead ? "Mark as unread" : "Mark as read"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowComments((current) => !current)}
+                  style={timelineActionStyles}
+                >
+                  {showComments
+                    ? "Hide comments"
+                    : `Show comments (${activity.commentsCount})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowReactionPicker((current) => !current)}
+                  style={timelineActionStyles}
+                >
+                  {showReactionPicker ? "Hide reactions" : "Show reactions"}
+                </button>
+              </Box>
+              <ActivityReactions
+                activityId={activity.id}
+                reactions={activity.reactions}
+                showReactionPicker={showReactionPicker}
+              />
+              {showComments ? (
+                <ActivityComments activityId={activity.id} />
+              ) : null}
+            </Box>
+          </Flex>
         </Box>
       </Box>
 

@@ -1,4 +1,10 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import { Box, Button, Flex, Text, TextArea } from "@radix-ui/themes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCreateActivityCommentMutation } from "../api/feed";
@@ -24,6 +30,15 @@ export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
   const handleContentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setContent(event.target.value);
     resizeTextarea(event.target);
+  };
+
+  const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -54,46 +69,49 @@ export const ActivityCommentForm = ({ activityId }: { activityId: string }) => {
   };
 
   return (
-    <Box asChild>
-      <form onSubmit={handleSubmit}>
-        <Flex direction="column" gap="2">
-          <Flex gap="2" align="start">
-            <Box flexGrow="1" minWidth="0">
-              <TextArea
-                ref={textareaRef}
-                aria-label="Comment"
-                placeholder="Add a comment"
-                size="1"
-                rows={1}
-                value={content}
-                onChange={handleContentChange}
-                style={{
-                  width: "100%",
-                }}
-              />
-            </Box>
-            <Button
-              type="submit"
+    <form onSubmit={handleSubmit}>
+      <Flex direction="column" gap="2">
+        <Flex gap="2" align="end">
+          <Box flexGrow="1" minWidth="0">
+            <TextArea
+              ref={textareaRef}
+              aria-label="Comment"
+              placeholder="Write a comment..."
               size="2"
-              disabled={
-                !userId || !trimmedContent || createCommentMutation.isPending
-              }
-            >
-              {createCommentMutation.isPending ? "Posting..." : "Post"}
-            </Button>
-          </Flex>
-          {createCommentMutation.isError ? (
-            <Text size="2" color="red">
-              Could not post comment.
-            </Text>
-          ) : null}
-          {!userId ? (
-            <Text size="2" color="gray">
-              Loading user...
-            </Text>
-          ) : null}
+              rows={1}
+              value={content}
+              onChange={handleContentChange}
+              onKeyDown={handleContentKeyDown}
+              style={{
+                width: "100%",
+                minHeight: "32px",
+                borderRadius: "var(--radius-2)",
+                background: "var(--color-panel-solid)",
+              }}
+            />
+          </Box>
+          <Button
+            type="submit"
+            size="2"
+            variant="soft"
+            disabled={
+              !userId || !trimmedContent || createCommentMutation.isPending
+            }
+          >
+            {createCommentMutation.isPending ? "Posting..." : "Post"}
+          </Button>
         </Flex>
-      </form>
-    </Box>
+        {createCommentMutation.isError ? (
+          <Text size="2" color="red">
+            Could not post comment.
+          </Text>
+        ) : null}
+        {!userId ? (
+          <Text size="2" color="gray">
+            Loading user...
+          </Text>
+        ) : null}
+      </Flex>
+    </form>
   );
 };
