@@ -8,6 +8,13 @@
       "when": 1780231095046,
       "tag": "0000_cooing_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780249359251,
+      "tag": "0001_nosy_dazzler",
+      "breakpoints": true
     }
   ]
 }
