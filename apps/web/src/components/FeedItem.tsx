@@ -124,7 +124,7 @@ export const FeedItem = ({
 
   return (
     <Box
-      className="feed-timeline__item"
+      className={`feed-timeline__item feed-timeline__item--fade-in`}
       style={{
         position: "relative",
         display: "grid",

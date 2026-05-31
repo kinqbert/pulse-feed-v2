@@ -80,7 +80,7 @@ export const Feed = () => {
           <Flex align="center" justify="between" gap="4" wrap="wrap" mb="4">
             <Box width="100%">
               <Flex align="baseline" gap="3" mb="2">
-                <Heading size="8">Feed</Heading>
+                <Heading size="8">Pulse Feed V2</Heading>
                 {unreadActivitiesCountQuery.data ? (
                   <Text size="2" color="teal" weight="bold">
                     {unreadActivitiesCountQuery.data.count} unread

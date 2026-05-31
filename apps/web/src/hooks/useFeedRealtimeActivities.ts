@@ -80,7 +80,10 @@ export function useFeedRealtimeActivities() {
             ...data,
             pages: data.pages.map((page, index) =>
               index === 0
-                ? { ...page, items: [activity, ...page.items] }
+                ? {
+                    ...page,
+                    items: [activity, ...page.items],
+                  }
                 : page,
             ),
           };
