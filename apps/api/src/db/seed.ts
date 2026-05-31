@@ -152,6 +152,7 @@ async function seed() {
     return {
       type,
       actorId: actor.id,
+      isUrgent: Math.random() < 0.2,
       metadata,
       searchText: buildActivitySearchText({ actor, metadata, type }),
       createdAt: randomDateWithinLastDays(45),

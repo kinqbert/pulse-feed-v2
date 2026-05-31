@@ -6,8 +6,8 @@ import {
 } from "@nestjs/common";
 import { FeedService } from "./feed.service";
 
-const MIN_TICK_DELAY_MS = 20_000;
-const MAX_TICK_DELAY_MS = 30_000;
+const MIN_TICK_DELAY_MS = 10_000;
+const MAX_TICK_DELAY_MS = 15_000;
 
 const getRandomTickDelayMs = () =>
   MIN_TICK_DELAY_MS +

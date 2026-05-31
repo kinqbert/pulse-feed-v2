@@ -38,6 +38,7 @@ type BaseFeedActivity = {
   createdAt: string;
   commentsCount: number;
   isRead: boolean;
+  isUrgent: boolean;
   reactions: ActivityReaction[];
   actor: ActivityActor;
 };

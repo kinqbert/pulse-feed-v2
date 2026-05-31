@@ -114,6 +114,7 @@ export const FeedItem = ({
   const markActivityReadMutation = useMarkActivityReadMutation();
   const markActivityUnreadMutation = useMarkActivityUnreadMutation();
   const ActivityContent = activityContentByType[activity.type];
+  const isUrgentUnread = activity.isUrgent && !activity.isRead;
   const isUpdatingReadState =
     markActivityReadMutation.isPending || markActivityUnreadMutation.isPending;
   const failedReadStateMutation = markActivityReadMutation.isError
@@ -134,7 +135,13 @@ export const FeedItem = ({
       }}
     >
       <Box
-        aria-label={activity.isRead ? "Read activity" : "Unread activity"}
+        aria-label={
+          activity.isRead
+            ? "Read activity"
+            : isUrgentUnread
+              ? "Urgent unread activity"
+              : "Unread activity"
+        }
         role="status"
         style={{
           position: "relative",
@@ -145,10 +152,16 @@ export const FeedItem = ({
           marginLeft: activity.isRead ? "6px" : "4.5px",
           border: activity.isRead ? "2px solid var(--gray-7)" : 0,
           borderRadius: "50%",
-          background: activity.isRead ? "var(--gray-2)" : "var(--teal-9)",
+          background: activity.isRead
+            ? "var(--gray-2)"
+            : isUrgentUnread
+              ? "var(--red-9)"
+              : "var(--teal-9)",
           boxShadow: activity.isRead
             ? "0 0 0 3px var(--gray-2)"
-            : "0 0 0 3px var(--teal-3), 0 0 0 5px var(--gray-2)",
+            : isUrgentUnread
+              ? "0 0 0 3px var(--red-3), 0 0 0 5px var(--gray-2)"
+              : "0 0 0 3px var(--teal-3), 0 0 0 5px var(--gray-2)",
           ...transitionStyles,
         }}
       />
@@ -157,9 +170,15 @@ export const FeedItem = ({
           style={{
             border: activity.isRead
               ? "1px solid var(--gray-5)"
-              : "1px solid var(--teal-6)",
+              : isUrgentUnread
+                ? "1px solid var(--red-6)"
+                : "1px solid var(--teal-6)",
             borderRadius: "6px",
-            background: activity.isRead ? "var(--gray-1)" : "var(--teal-2)",
+            background: activity.isRead
+              ? "var(--gray-1)"
+              : isUrgentUnread
+                ? "var(--red-2)"
+                : "var(--teal-2)",
             padding: "10px 12px",
             ...transitionStyles,
           }}
@@ -198,13 +217,15 @@ export const FeedItem = ({
                     as="span"
                     size="1"
                     style={{
-                      color: "var(--teal-11)",
+                      color: isUrgentUnread
+                        ? "var(--red-11)"
+                        : "var(--teal-11)",
                       fontWeight: 600,
                       lineHeight: 1,
                       ...transitionStyles,
                     }}
                   >
-                    New
+                    {isUrgentUnread ? "Urgent" : "New"}
                   </Text>
                 ) : null}
               </Box>

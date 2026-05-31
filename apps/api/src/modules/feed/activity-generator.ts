@@ -86,6 +86,7 @@ export function buildRandomActivity(actor: ActivityActor) {
 
   return {
     actorId: actor.id,
+    isUrgent: Math.random() < 0.2,
     metadata,
     searchText: buildActivitySearchText({ actor, metadata, type }),
     type,

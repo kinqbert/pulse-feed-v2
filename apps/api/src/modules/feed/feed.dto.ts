@@ -86,6 +86,9 @@ export class FeedActivityDto {
   @IsBoolean()
   declare isRead: boolean;
 
+  @IsBoolean()
+  declare isUrgent: boolean;
+
   @IsInt()
   declare commentsCount: number;
 

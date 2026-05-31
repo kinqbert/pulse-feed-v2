@@ -72,3 +72,5 @@ Open `http://localhost:5173`.
 6. I'd also consider changing the folder structure of the web app. Right now it's pretty flat, but this is only because the app is small and consists only from one page. As it grows, it would make sense to organize the code into feature-based folders or something like that to keep things more manageable
 
 7. I'd consider using different indexing strategy for text search. Right now I'm using a simple GIN index on the `searchText` column that includes data from metadata and actor, but it may not be the most efficient way to do it. Depending on the use case, it may make sense to use a different indexing, like trigram or perhaps even a different database for search functionality like Elasticsearch or something like that. It really depends on the specific requirements and constraints of the project
+
+8. Also it would be nice to add filters by read/unread, urgent/non-urgent

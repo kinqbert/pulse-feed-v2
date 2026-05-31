@@ -103,6 +103,7 @@ export class FeedRepository {
         type: activities.type,
         metadata: activities.metadata,
         isRead: userActivities.isRead,
+        isUrgent: activities.isUrgent,
         commentsCount: getCommentsCount(),
         reactions: getReactionSummaries(userId),
         createdAt: activities.createdAt,
@@ -185,6 +186,7 @@ export class FeedRepository {
           id: activities.id,
           type: activities.type,
           metadata: activities.metadata,
+          isUrgent: activities.isUrgent,
           createdAt: activities.createdAt,
         });
 
