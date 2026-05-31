@@ -11,7 +11,6 @@ import {
 } from "./schema";
 import { buildActivitySearchText } from "../modules/feed/activity-generator";
 
-const USER_COUNT = 20;
 const ACTIVITY_COUNT = 10000;
 const MAX_COMMENTS_PER_ACTIVITY = 3;
 const ACTIVITY_BATCH_SIZE = 250;
@@ -128,14 +127,10 @@ async function seed() {
   const seededUsers = await db
     .insert(users)
     .values(
-      Array.from({ length: USER_COUNT }, (_, index) => {
-        const name = characterNames[index % characterNames.length];
-
-        return {
-          name,
-          email: `seed-${index + 1}@example.test`,
-        };
-      }),
+      characterNames.map((characterName, index) => ({
+        name: characterName,
+        email: `seed-${index + 1}@example.test`,
+      })),
     )
     .onConflictDoUpdate({
       target: users.email,
