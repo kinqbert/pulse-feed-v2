@@ -175,6 +175,8 @@ export function useFeedInfiniteQuery(filters: FeedFilters) {
       }),
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    refetchOnReconnect: "always",
+    refetchOnWindowFocus: "always",
   });
 }
 

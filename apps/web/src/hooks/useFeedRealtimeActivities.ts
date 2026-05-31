@@ -54,6 +54,14 @@ export function useFeedRealtimeActivities() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const refetchActiveFeedQueries = () => {
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
+        refetchType: "active",
+      });
+    };
+
     const handleActivityCreated = (activity: FeedActivity) => {
       const feedQueries = queryClient.getQueryCache().findAll({
         predicate: (query) =>
@@ -95,10 +103,13 @@ export function useFeedRealtimeActivities() {
       }
     };
 
+    // todo -- move to lib or other place
     socket.on(FEED_ACTIVITY_CREATED_EVENT, handleActivityCreated);
+    socket.io.on("reconnect", refetchActiveFeedQueries);
 
     return () => {
       socket.off(FEED_ACTIVITY_CREATED_EVENT, handleActivityCreated);
+      socket.io.off("reconnect", refetchActiveFeedQueries);
     };
   }, [queryClient]);
 }
