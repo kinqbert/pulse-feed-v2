@@ -24,13 +24,16 @@ export class FeedService {
     private readonly feedRepository: FeedRepository,
   ) {}
 
-  async getFeed({
-    cursor,
-    actorId,
-    limit = DEFAULT_FEED_LIMIT,
-    period,
-    type,
-  }: GetFeedQueryDto): Promise<FeedPageDto> {
+  async getFeed(
+    userId: string,
+    {
+      cursor,
+      actorId,
+      limit = DEFAULT_FEED_LIMIT,
+      period,
+      type,
+    }: GetFeedQueryDto,
+  ): Promise<FeedPageDto> {
     const pageSize = limit ?? DEFAULT_FEED_LIMIT;
     const cursorValue = this.parseCursor(cursor);
     const filters = {
@@ -42,6 +45,7 @@ export class FeedService {
       cursor: cursorValue,
       filters,
       limit: pageSize + 1,
+      userId,
     });
     const items = activities.slice(0, pageSize);
     const hasNextPage = activities.length > pageSize;
@@ -76,6 +80,7 @@ export class FeedService {
     const finalActivity = {
       ...activity,
       actor,
+      isRead: false,
     };
 
     this.feedRealtimeGateway.emitActivityCreated(finalActivity);
@@ -83,8 +88,11 @@ export class FeedService {
     return finalActivity;
   }
 
-  async markActivityRead(activityId: string) {
-    const activity = await this.feedRepository.markActivityRead(activityId);
+  async markActivityRead(activityId: string, userId: string) {
+    const activity = await this.feedRepository.markActivityRead(
+      activityId,
+      userId,
+    );
 
     if (!activity) {
       throw new NotFoundException("Activity not found");

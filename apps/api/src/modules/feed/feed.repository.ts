@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { and, asc, desc, eq, gte, lt, or, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "../../db/db";
-import { activities, type ActivityType, users } from "../../db/schema";
+import {
+  activities,
+  activityReads,
+  type ActivityType,
+  users,
+} from "../../db/schema";
 
 @Injectable()
 export class FeedRepository {
@@ -9,6 +14,7 @@ export class FeedRepository {
     cursor,
     filters,
     limit,
+    userId,
   }: {
     cursor?: { createdAt: Date; id: string };
     filters?: {
@@ -17,6 +23,7 @@ export class FeedRepository {
       type?: ActivityType;
     };
     limit: number;
+    userId: string;
   }) {
     const whereConditions: SQL[] = [];
 
@@ -51,7 +58,7 @@ export class FeedRepository {
         id: activities.id,
         type: activities.type,
         metadata: activities.metadata,
-        isRead: activities.isRead,
+        isRead: sql<boolean>`${activityReads.activityId} is not null`,
         createdAt: activities.createdAt,
         actor: {
           id: users.id,
@@ -61,6 +68,13 @@ export class FeedRepository {
       })
       .from(activities)
       .innerJoin(users, eq(activities.actorId, users.id))
+      .leftJoin(
+        activityReads,
+        and(
+          eq(activityReads.activityId, activities.id),
+          eq(activityReads.userId, userId),
+        ),
+      )
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
       .orderBy(desc(activities.createdAt), desc(activities.id))
       .limit(limit);
@@ -98,23 +112,36 @@ export class FeedRepository {
         id: activities.id,
         type: activities.type,
         metadata: activities.metadata,
-        isRead: activities.isRead,
         createdAt: activities.createdAt,
       });
 
     return createdActivity;
   }
 
-  async markActivityRead(activityId: string) {
+  async markActivityRead(activityId: string, userId: string) {
     const [activity] = await db
-      .update(activities)
-      .set({ isRead: true })
-      .where(eq(activities.id, activityId))
-      .returning({
+      .select({
         id: activities.id,
-        isRead: activities.isRead,
-      });
+      })
+      .from(activities)
+      .where(eq(activities.id, activityId))
+      .limit(1);
 
-    return activity;
+    if (!activity) {
+      return undefined;
+    }
+
+    await db
+      .insert(activityReads)
+      .values({
+        activityId,
+        userId,
+      })
+      .onConflictDoNothing();
+
+    return {
+      ...activity,
+      isRead: true,
+    };
   }
 }

@@ -2,6 +2,7 @@ import { db, pool } from "./db";
 import {
   activities,
   activityComments,
+  activityReads,
   type ActivityMetadata,
   ActivityType,
   users,
@@ -12,6 +13,7 @@ const ACTIVITY_COUNT = 10000;
 const MAX_COMMENTS_PER_ACTIVITY = 3;
 const ACTIVITY_BATCH_SIZE = 250;
 const COMMENT_BATCH_SIZE = 500;
+const ACTIVITY_READ_BATCH_SIZE = 500;
 
 const characterNames = [
   "Walter White",
@@ -162,6 +164,21 @@ async function seed() {
     seededActivities.push(...createdActivities);
   }
 
+  const firstUser = seededUsers[0];
+
+  if (!firstUser) {
+    throw new Error("At least one seeded user is required");
+  }
+
+  const activityReadValues = seededActivities.map((activity) => ({
+    activityId: activity.id,
+    userId: firstUser.id,
+  }));
+
+  for (const batch of chunk(activityReadValues, ACTIVITY_READ_BATCH_SIZE)) {
+    await db.insert(activityReads).values(batch).onConflictDoNothing();
+  }
+
   const commentValues = seededActivities.flatMap((activity) => {
     const commentsCount = randomInt(MAX_COMMENTS_PER_ACTIVITY + 1);
 
@@ -180,7 +197,7 @@ async function seed() {
   }
 
   console.log(
-    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, and ${commentValues.length} comments.`,
+    `Seeded ${seededUsers.length} users, ${seededActivities.length} activities, ${activityReadValues.length} read states, and ${commentValues.length} comments.`,
   );
 }
 

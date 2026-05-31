@@ -7,6 +7,7 @@ import {
   Query,
   ValidationPipe,
 } from "@nestjs/common";
+import { UserId } from "../../common/decorators/user-id.decorator";
 import { FeedFilterOptionsDto, FeedPageDto, GetFeedQueryDto } from "./feed.dto";
 import { FeedService } from "./feed.service";
 
@@ -21,14 +22,18 @@ export class FeedController {
 
   @Get()
   getFeed(
+    @UserId() userId: string,
     @Query(new ValidationPipe({ transform: true }))
     query: GetFeedQueryDto,
   ): Promise<FeedPageDto> {
-    return this.feedService.getFeed(query);
+    return this.feedService.getFeed(userId, query);
   }
 
   @Patch(":activityId/read")
-  markActivityRead(@Param("activityId", new ParseUUIDPipe()) activityId: string) {
-    return this.feedService.markActivityRead(activityId);
+  markActivityRead(
+    @UserId(new ParseUUIDPipe()) userId: string,
+    @Param("activityId", new ParseUUIDPipe()) activityId: string,
+  ) {
+    return this.feedService.markActivityRead(activityId, userId);
   }
 }

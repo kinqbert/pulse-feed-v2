@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
-import { boolean } from "drizzle-orm/pg-core";
 import { jsonb } from "drizzle-orm/pg-core";
+import { primaryKey } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { pgTable, text, uuid } from "drizzle-orm/pg-core";
 
@@ -59,11 +59,23 @@ export const activities = pgTable("activities", {
     .notNull()
     .references(() => users.id),
   metadata: jsonb("metadata").$type<ActivityMetadata>().notNull(),
-  isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+export const activityReads = pgTable(
+  "activity_reads",
+  {
+    activityId: uuid("activity_id")
+      .notNull()
+      .references(() => activities.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => [primaryKey({ columns: [table.activityId, table.userId] })],
+);
 
 export const activityComments = pgTable("activity_comments", {
   id: uuid("id").primaryKey().defaultRandom(),
