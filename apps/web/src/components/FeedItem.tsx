@@ -111,7 +111,6 @@ export const FeedItem = ({
   isLast?: boolean;
 }) => {
   const [showComments, setShowComments] = useState(false);
-  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const markActivityReadMutation = useMarkActivityReadMutation();
   const markActivityUnreadMutation = useMarkActivityUnreadMutation();
   const ActivityContent = activityContentByType[activity.type];
@@ -179,7 +178,7 @@ export const FeedItem = ({
               >
                 <Text
                   as="p"
-                  size="2"
+                  size="1"
                   color="gray"
                   style={{
                     margin: 0,
@@ -235,18 +234,10 @@ export const FeedItem = ({
                     ? "Hide comments"
                     : `Show comments (${activity.commentsCount})`}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowReactionPicker((current) => !current)}
-                  style={timelineActionStyles}
-                >
-                  {showReactionPicker ? "Hide reactions" : "Show reactions"}
-                </button>
               </Box>
               <ActivityReactions
                 activityId={activity.id}
                 reactions={activity.reactions}
-                showReactionPicker={showReactionPicker}
               />
               {showComments ? (
                 <ActivityComments activityId={activity.id} />

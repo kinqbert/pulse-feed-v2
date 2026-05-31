@@ -1,4 +1,4 @@
-import { Box, Text } from "@radix-ui/themes";
+import { Box, Popover, Text } from "@radix-ui/themes";
 import {
   type ActivityReaction,
   useToggleActivityReactionMutation,
@@ -6,14 +6,21 @@ import {
 
 const reactionOptions = ["👍", "🎉", "❤️", "👀", "🚀"];
 
+const reactionButtonStyle = {
+  border: "1px solid var(--gray-6)",
+  borderRadius: "999px",
+  color: "var(--gray-12)",
+  background: "var(--gray-2)",
+  cursor: "pointer",
+  font: "inherit",
+};
+
 export const ActivityReactions = ({
   activityId,
   reactions,
-  showReactionPicker,
 }: {
   activityId: string;
   reactions: ActivityReaction[];
-  showReactionPicker: boolean;
 }) => {
   const toggleReactionMutation = useToggleActivityReactionMutation();
   const toggleReaction = (emoji: string) => {
@@ -30,73 +37,88 @@ export const ActivityReactions = ({
 
   return (
     <>
-      {reactions.length > 0 || showReactionPicker ? (
-        <Box
-          style={{
-            display: "flex",
-            gap: "6px",
-            marginTop: "8px",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          {reactions.map((reaction) => (
+      <Box
+        style={{
+          display: "flex",
+          gap: "6px",
+          marginTop: "8px",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <Popover.Root>
+          <Popover.Trigger>
             <button
-              key={reaction.emoji}
               type="button"
-              aria-pressed={reaction.hasReacted}
-              disabled={toggleReactionMutation.isPending}
-              onClick={() => toggleReaction(reaction.emoji)}
+              aria-label="Add reaction"
               style={{
-                padding: "2px 7px",
-                border: reaction.hasReacted
-                  ? "1px solid var(--teal-7)"
-                  : "1px solid var(--gray-6)",
-                borderRadius: "999px",
-                color: "var(--gray-12)",
-                background: reaction.hasReacted
-                  ? "var(--teal-3)"
-                  : "var(--gray-2)",
-                cursor: "pointer",
-                font: "inherit",
-                fontSize: "12px",
+                ...reactionButtonStyle,
+                width: "26px",
+                height: "24px",
+                padding: 0,
+                color: "var(--gray-10)",
+                background: "transparent",
+                fontSize: "15px",
+                lineHeight: 1,
               }}
             >
-              {reaction.emoji} {reaction.count}
+              ☺
             </button>
-          ))}
-          {showReactionPicker
-            ? reactionOptions
-                .filter(
-                  (emoji) =>
-                    !reactions.some(
-                      (reaction) =>
-                        reaction.emoji === emoji && reaction.count > 0,
-                    ),
-                )
-                .map((emoji) => (
+          </Popover.Trigger>
+          <Popover.Content side="top" align="start" size="1">
+            <Box
+              style={{
+                display: "flex",
+                gap: "4px",
+              }}
+            >
+              {reactionOptions.map((emoji) => (
+                <Popover.Close key={emoji}>
                   <button
-                    key={emoji}
                     type="button"
                     aria-label={`React with ${emoji}`}
                     disabled={toggleReactionMutation.isPending}
                     onClick={() => toggleReaction(emoji)}
                     style={{
-                      padding: "2px 5px",
-                      border: "1px solid var(--gray-6)",
-                      borderRadius: "999px",
+                      padding: "0px 4px",
+                      border: 0,
+                      borderRadius: "var(--radius-2)",
                       background: "transparent",
                       cursor: "pointer",
                       font: "inherit",
-                      fontSize: "14px",
+                      fontSize: "16px",
                     }}
                   >
                     {emoji}
                   </button>
-                ))
-            : null}
-        </Box>
-      ) : null}
+                </Popover.Close>
+              ))}
+            </Box>
+          </Popover.Content>
+        </Popover.Root>
+        {reactions.map((reaction) => (
+          <button
+            key={reaction.emoji}
+            type="button"
+            aria-pressed={reaction.hasReacted}
+            disabled={toggleReactionMutation.isPending}
+            onClick={() => toggleReaction(reaction.emoji)}
+            style={{
+              ...reactionButtonStyle,
+              padding: "2px 7px",
+              border: reaction.hasReacted
+                ? "1px solid var(--teal-7)"
+                : reactionButtonStyle.border,
+              background: reaction.hasReacted
+                ? "var(--teal-3)"
+                : reactionButtonStyle.background,
+              fontSize: "12px",
+            }}
+          >
+            {reaction.emoji} {reaction.count}
+          </button>
+        ))}
+      </Box>
       {toggleReactionMutation.isError ? (
         <Text as="p" size="1" color="red" mt="2">
           Could not save reaction. Try again.
