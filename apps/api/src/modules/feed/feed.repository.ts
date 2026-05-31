@@ -86,7 +86,8 @@ export class FeedRepository {
     if (filters?.query) {
       whereConditions.push(
         sql`(
-          ${activities.searchText} ilike ${`%${filters.query}%`}
+          ${activities.searchVector} @@ to_tsquery('simple', ${filters.query})
+          or ${activities.searchText} ilike ${`%${filters.query}%`}
           or word_similarity(${filters.query}, ${activities.searchText}) > 0.5
         )`,
       );
