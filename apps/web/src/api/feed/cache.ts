@@ -1,5 +1,5 @@
 import { type InfiniteData, type QueryClient } from "@tanstack/react-query";
-import type { FeedPage } from "./types";
+import type { FeedPage } from "../../types";
 
 export const isFeedQuery = (query: { queryKey: readonly unknown[] }) =>
   query.queryKey[0] === "feed" && query.queryKey[1] !== "filters";

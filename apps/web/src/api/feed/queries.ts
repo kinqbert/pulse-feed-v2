@@ -6,7 +6,7 @@ import type {
   FeedFilters,
   FeedPage,
   UnreadActivitiesCount,
-} from "./types";
+} from "../../types";
 
 async function fetchFeedPage({
   actorId,

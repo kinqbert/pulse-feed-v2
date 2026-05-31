@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { api } from "../client";
 import { isFeedQuery, updateFeedActivities } from "./cache";
-import type { ActivityReaction, FeedPage } from "./types";
+import type { ActivityReaction, FeedPage } from "../../types";
 
 export type ToggleActivityReactionInput = {
   activityId: string;

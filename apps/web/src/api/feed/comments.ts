@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "../client";
-import type { ActivityActor } from "./types";
+import type { ActivityActor } from "../../types";
 
 export type ActivityComment = {
   id: string;

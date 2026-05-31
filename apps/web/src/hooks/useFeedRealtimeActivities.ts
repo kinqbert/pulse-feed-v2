@@ -1,6 +1,5 @@
 import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
 import {
-  FEED_ACTIVITY_CREATED_EVENT,
   getStartOfDay,
   getStartOfNextDay,
   type FeedActivity,
@@ -9,6 +8,7 @@ import {
   type UnreadActivitiesCount,
 } from "../api/feed";
 import { useSocketEvent, useSocketManagerEvent } from "../lib/sockets";
+import { FEED_ACTIVITY_CREATED_EVENT } from "../constants";
 
 function matchesFilters(activity: FeedActivity, filters: FeedFilters) {
   if (filters.actorId !== "all" && activity.actor.id !== filters.actorId) {
@@ -79,7 +79,9 @@ export function useFeedRealtimeActivities() {
           return {
             ...data,
             pages: data.pages.map((page, index) =>
-              index === 0 ? { ...page, items: [activity, ...page.items] } : page,
+              index === 0
+                ? { ...page, items: [activity, ...page.items] }
+                : page,
             ),
           };
         },
