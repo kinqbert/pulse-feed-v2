@@ -181,7 +181,7 @@ export const FeedFilters = () => {
           Search
         </Text>
         <DebouncedSearchInput
-          key={`${filters.query}-${searchResetVersion}`}
+          key={searchResetVersion}
           initialQuery={filters.query}
           setQuery={setQuery}
         />
