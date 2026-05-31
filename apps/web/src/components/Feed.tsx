@@ -80,6 +80,7 @@ export const Feed = () => {
               </Heading>
               <Text as="p" color="gray">
                 Latest activity across comments, mentions, tasks, and deploys.
+                New activity arrives every 20 to 30 seconds.
               </Text>
               <FeedFilters />
             </Box>
