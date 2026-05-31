@@ -1,4 +1,5 @@
 import { db, pool } from "./db";
+import { sql } from "drizzle-orm";
 import {
   activities,
   activityComments,
@@ -124,8 +125,6 @@ function buildActivityMetadata(type: ActivityType): ActivityMetadata {
 }
 
 async function seed() {
-  const runId = Date.now().toString(36);
-
   const seededUsers = await db
     .insert(users)
     .values(
@@ -134,10 +133,16 @@ async function seed() {
 
         return {
           name,
-          email: `seed+${runId}-${index + 1}@example.test`,
+          email: `seed-${index + 1}@example.test`,
         };
       }),
     )
+    .onConflictDoUpdate({
+      target: users.email,
+      set: {
+        name: sql`excluded.name`,
+      },
+    })
     .returning({
       id: users.id,
       name: users.name,
