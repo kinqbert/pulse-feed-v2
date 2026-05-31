@@ -1,5 +1,16 @@
 import { Injectable } from "@nestjs/common";
-import { and, asc, desc, eq, gte, lt, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  isNull,
+  lt,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { db } from "../../db/db";
 import {
   activities,
@@ -186,6 +197,36 @@ export class FeedRepository {
         activityId,
         userId,
       })
+      .onConflictDoNothing();
+  }
+
+  async markAllActivitiesRead(userId: string) {
+    const unreadActivities = await db
+      .select({
+        activityId: activities.id,
+      })
+      .from(activities)
+      .leftJoin(
+        activityReads,
+        and(
+          eq(activityReads.activityId, activities.id),
+          eq(activityReads.userId, userId),
+        ),
+      )
+      .where(isNull(activityReads.activityId));
+
+    if (unreadActivities.length === 0) {
+      return;
+    }
+
+    await db
+      .insert(activityReads)
+      .values(
+        unreadActivities.map(({ activityId }) => ({
+          activityId,
+          userId,
+        })),
+      )
       .onConflictDoNothing();
   }
 

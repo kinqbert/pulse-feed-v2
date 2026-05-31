@@ -285,6 +285,42 @@ export function useMarkActivityReadMutation() {
   });
 }
 
+async function markAllActivitiesRead(): Promise<void> {
+  await api.patch("/feed/read-all");
+}
+
+export function useMarkAllActivitiesReadMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: markAllActivitiesRead,
+    onSuccess: () => {
+      queryClient.setQueriesData<InfiniteData<FeedPage>>(
+        {
+          predicate: (query) =>
+            query.queryKey[0] === "feed" && query.queryKey[1] !== "filters",
+        },
+        (data) => {
+          if (!data) {
+            return data;
+          }
+
+          return {
+            ...data,
+            pages: data.pages.map((page) => ({
+              ...page,
+              items: page.items.map((activity) => ({
+                ...activity,
+                isRead: true,
+              })),
+            })),
+          };
+        },
+      );
+    },
+  });
+}
+
 async function markActivityUnread(activityId: string): Promise<void> {
   await api.delete(`/feed/${activityId}/read`);
 }

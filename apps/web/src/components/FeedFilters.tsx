@@ -3,6 +3,7 @@ import { Box, Button, Flex, Select, Text } from "@radix-ui/themes";
 import {
   defaultFeedFilters,
   getActivityLabel,
+  useMarkAllActivitiesReadMutation,
   useFeedFilterOptionsQuery,
   type ActivityType,
 } from "../api/feed";
@@ -126,6 +127,7 @@ function getStartOfWeek(date: Date) {
 
 export const FeedFilters = () => {
   const filterOptionsQuery = useFeedFilterOptionsQuery();
+  const markAllActivitiesReadMutation = useMarkAllActivitiesReadMutation();
   const { filters, resetFilters, setActorId, setDateRange, setQuery, setType } =
     useFeedFiltersSearchParams();
   const [searchResetVersion, setSearchResetVersion] = useState(0);
@@ -139,15 +141,18 @@ export const FeedFilters = () => {
   const applyDateRange = (from: Date, to: Date) => {
     setDateRange(formatDateInputValue(from), formatDateInputValue(to));
   };
+
   const handleResetFilters = () => {
     setSearchResetVersion((current) => current + 1);
     resetFilters();
   };
+
   const applyToday = () => {
     const today = new Date();
 
     applyDateRange(today, today);
   };
+
   const applyThisWeek = () => {
     const today = new Date();
     const from = getStartOfWeek(today);
@@ -156,6 +161,7 @@ export const FeedFilters = () => {
     to.setDate(to.getDate() + 6);
     applyDateRange(from, to);
   };
+
   const applyLastWeek = () => {
     const to = getStartOfWeek(new Date());
 
@@ -166,6 +172,7 @@ export const FeedFilters = () => {
     from.setDate(from.getDate() - 6);
     applyDateRange(from, to);
   };
+
   const applyThisMonth = () => {
     const today = new Date();
     const from = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -271,9 +278,18 @@ export const FeedFilters = () => {
             type="button"
             size="1"
             variant="soft"
+            style={{ marginLeft: "auto" }}
+            disabled={markAllActivitiesReadMutation.isPending}
+            onClick={() => markAllActivitiesReadMutation.mutate()}
+          >
+            Mark all as read
+          </Button>
+          <Button
+            type="button"
+            size="1"
+            variant="soft"
             disabled={!hasActiveFilters}
             onClick={handleResetFilters}
-            style={{ marginLeft: "auto" }}
           >
             Reset filters
           </Button>

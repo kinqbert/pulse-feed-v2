@@ -30,6 +30,11 @@ export class FeedController {
     return this.feedService.getFeed(userId, query);
   }
 
+  @Patch("read-all")
+  markAllActivitiesRead(@UserId(new ParseUUIDPipe()) userId: string) {
+    return this.feedService.markAllActivitiesRead(userId);
+  }
+
   @Patch(":activityId/read")
   markActivityRead(
     @UserId(new ParseUUIDPipe()) userId: string,

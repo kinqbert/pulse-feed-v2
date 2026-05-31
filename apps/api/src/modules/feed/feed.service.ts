@@ -91,6 +91,10 @@ export class FeedService {
     await this.feedRepository.markActivityRead(activityId, userId);
   }
 
+  async markAllActivitiesRead(userId: string) {
+    await this.feedRepository.markAllActivitiesRead(userId);
+  }
+
   async markActivityUnread(activityId: string, userId: string) {
     await this.feedRepository.markActivityUnread(activityId, userId);
   }
